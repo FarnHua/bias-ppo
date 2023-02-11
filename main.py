@@ -226,10 +226,10 @@ def main():
                             join(f'results/{args.save_path}/',
                                     f'checkpoint-step-{batch-1}-value.pkl'))
             torch.save(
-                            Prompt.optimizer.state_dict(),
+                Prompt.optimizer.state_dict(),
                             join(f'results/{args.save_path}/',
                                     f'checkpoint-step-{batch}-optimizer.pkl'
-                        )
+                        ))
             break
 
 def set_arguments(parser):
