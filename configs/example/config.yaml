@@ -1,0 +1,22 @@
+task: <annoyance>
+seed: 52
+ratio: 0.1
+bz: 8
+k_epoch: 5
+discount: 0.8
+end_batch: 50
+sample_time: 5
+outer_lr: 5.0e-5
+inner_lr: 5.0e-5
+max_pt_len: 20
+iters: 20
+num_testing: 20
+type: emotion
+mode: pretrain # pretrain, finetune, testing
+load: false
+model: null
+save_path: result/example
+extra_label: train_word_list.txt #test_word_list.txt # None
+prompt: example
+path: ./data/dd_train.txt
+
