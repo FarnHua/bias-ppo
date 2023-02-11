@@ -43,6 +43,8 @@ class prompt(base):
                     if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}]
         
         self.optimizer =  AdamW(self.optimizer_grouped_parameters, self.args.inner_lr)
+        
+
         self.model.to(self.device)
         self.model_demo.to(self.device)
         self.state_network.to(self.device)

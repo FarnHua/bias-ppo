@@ -208,6 +208,11 @@ def main():
                                 for k, v in Prompt.state_network.state_dict().items()},
                             join(f'results/{args.save_path}/',
                                     f'checkpoint-step-{batch}-value.pkl'))
+                        torch.save(
+                            Prompt.optimizer.state_dict(),
+                            join(f'results/{args.save_path}/',
+                                    f'checkpoint-step-{batch}-optimizer.pkl'
+                        )
 
         if batch > args.end_batch:
             torch.save(
@@ -220,6 +225,11 @@ def main():
                                 for k, v in Prompt.state_network.state_dict().items()},
                             join(f'results/{args.save_path}/',
                                     f'checkpoint-step-{batch-1}-value.pkl'))
+            torch.save(
+                            Prompt.optimizer.state_dict(),
+                            join(f'results/{args.save_path}/',
+                                    f'checkpoint-step-{batch}-optimizer.pkl'
+                        )
             break
 
 def set_arguments(parser):
