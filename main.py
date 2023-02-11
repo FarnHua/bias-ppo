@@ -212,9 +212,9 @@ def main():
                             Prompt.optimizer.state_dict(),
                             join(f'results/{args.save_path}/',
                                     f'checkpoint-step-{batch}-optimizer.pkl'
-                        )
+                        ))
 
-        elif batch > args.end_batch:
+        if batch > args.end_batch:
             torch.save(
                             {k: (v.cpu() if v is not None else None)  # save to cpu tensors
                                 for k, v in Prompt.model.state_dict().items()},
