@@ -21,7 +21,7 @@ class bot(nn.Module):
         with torch.no_grad():
             sentences = []
             for i in range(len(prompts)):
-                sentences.append((prompts[i] + prefix_sentences[i]))
+                sentences.append(prefix_sentences[i])
             reply_string = []
             input = self.tokenizer.batch_encode_plus(sentences, return_tensors='pt', padding=True).to(self.device)
             reply_ids = self.lm.generate(**input, num_beams=1, do_sample=False)
