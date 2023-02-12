@@ -16,11 +16,11 @@ class bot(nn.Module):
         self.lm.to(self.device)
         self.lm.eval()
 
-    def make_response(self,prefix_sentences, prompts):
+    def make_response(self,prefix_sentences):
         
         with torch.no_grad():
             sentences = []
-            for i in range(len(prompts)):
+            for i in range(len(prefix_sentences)):
                 sentences.append(prefix_sentences[i])
             reply_string = []
             input = self.tokenizer.batch_encode_plus(sentences, return_tensors='pt', padding=True).to(self.device)
