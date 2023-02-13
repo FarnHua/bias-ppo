@@ -1,4 +1,3 @@
 results/*
 wandb/*
 *.pyc
-data/*
