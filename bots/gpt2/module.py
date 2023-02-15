@@ -15,7 +15,7 @@ class bot(nn.Module):
         self.tokenizer = GPT2Tokenizer.from_pretrained("gpt2-medium")
         self.tokenizer.pad_token = self.tokenizer.eos_token
         self.lm = GPT2LMHeadModel.from_pretrained("gpt2-medium")
-        self.lm.load_state_dict(torch.load('./gpt2_finetune/gpt2-medium-4.pt'))
+        self.lm.load_state_dict(torch.load('./results/bias-ppo2-blender/checkpoint-step-1000-prompt.pkl'))
         self.lm.to(self.device)
         self.lm.eval()
 
