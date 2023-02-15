@@ -14,7 +14,7 @@ input = "What"
 
 
 bot2 = importlib.import_module(".module","bots.gpt2").bot
-bot2.lm.load_state_dict(torch.load('./gpt2_finetune/gpt2-medium-4.pt'))
+
 bot2.lm.eval()
 
 
