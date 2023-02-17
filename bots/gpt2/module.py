@@ -43,19 +43,22 @@ class bot(nn.Module):
 
             m = torch.LongTensor(tf.keras.preprocessing.sequence.pad_sequences([torch.LongTensor(x) for x in m], value=0)).to(self.device)
             # take out the hidden state of original input and form it as past
-            position_ids = m.long().cumsum(-1) - 1 
-            position_ids.masked_fill_(m == 0, 1).to(self.device)
-            outputs = self.lm(prev_input, past_key_values=None, attention_mask=m, position_ids=position_ids)
-            past = outputs['past_key_values']
+            # position_ids = m.long().cumsum(-1) - 1 
+            # position_ids.masked_fill_(m == 0, 1).to(self.device)
+            # outputs = self.lm(prev_input, past_key_values=None, attention_mask=m, position_ids=position_ids)
+            # past = outputs['past_key_values']
+            past = None
 
             # append eos token in the end (add attention mask 1 in the eos)
-            prev_input = torch.LongTensor([[eos] * len(sentences)]).squeeze(0).to(self.device)
+            # prev_input = torch.LongTensor([[eos] * len(sentences)]).squeeze(0).to(self.device)
             append = torch.tensor([[1] for i in range(len(sentences))]).to(self.device)
-            m = torch.cat((m, append), 1)
+            # m = torch.cat((m, append), 1)
             position_ids = m.long().cumsum(-1) - 1
             position_ids.masked_fill_(m == 0, 1)
             position_ids = position_ids[:, -1].unsqueeze(-1).to(self.device)
             temp_sen = [[] for i in range(len(sentences))]
+            for i in range(len(sentences)):
+                temp_sen[i].extend(sentences[i])
 
             for i in range(128):
                 output = self.lm(prev_input, past_key_values=past, attention_mask=m, position_ids=position_ids)
