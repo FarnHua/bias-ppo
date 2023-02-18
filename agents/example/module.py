@@ -24,7 +24,7 @@ class agent(nn.Module):
         self.type = config.type
 
         self.ppl_model = GPT2LMHeadModel.from_pretrained('gpt2-medium').to(self.device)
-        self.ppl_tokenizer = GPT2Tokenizer.from_pretrained('gpt2-medium').to(self.device)
+        self.ppl_tokenizer = GPT2Tokenizer.from_pretrained('gpt2-medium')
         self.ppl_model.eval()
 
         self.word_dict = None
