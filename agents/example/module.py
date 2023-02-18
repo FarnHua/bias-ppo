@@ -3,11 +3,12 @@ from torch import nn
 from torch.distributions.categorical import Categorical
 # from goemotion.model import BertForMultiLabelClassification
 # from goemotion.multilabel_pipeline import EmotionP
-from transformers import BertTokenizer
+from transformers import GPT2LMHeadModel, GPT2Tokenizer, GPT2Config
 import torch.nn.functional as F
 import numpy as np
 import re
 import wandb
+import math
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 class agent(nn.Module):
     def __init__(self, config, prompt, bot):
@@ -21,6 +22,10 @@ class agent(nn.Module):
         self.prompt = prompt
         self.bot = bot
         self.type = config.type
+
+        self.ppl_model = GPT2LMHeadModel.from_pretrained('gpt2-medium').to(self.device)
+        self.ppl_tokenizer = GPT2Tokenizer.from_pretrained('gpt2-medium').to(self.device)
+        self.ppl_model.eval()
 
         self.word_dict = None
         self.train_task = None
@@ -428,10 +433,14 @@ class agent(nn.Module):
         score = []
         re_sen = []
         re_res = []
+        ppl_loss = []
 
         for j in range(len(sentences)):
             tmp_1, tmp_2, gen = self.replace_sentence(sentences[j])
-            
+            encoded_sentence = torch.LongTensor(self.ppl_tokenizer.encode(sentences[j])).to(self.device)
+            outputs = self.ppl_model(encoded_sentence, label=encoded_sentence, return_dict=True)
+            ppl_loss.append(math.exp(outputs.loss.item()))
+
             if gen == False:
                 score.append(0.0)
                 re_sen.append([tmp_1, tmp_1])
@@ -452,6 +461,11 @@ class agent(nn.Module):
                 re_res.append([responses[0][0], responses[1][0]])
         # print("=================")
         # print(score, '\n')
+        ppl_loss = np.array(ppl_loss)
+        std = np.std(ppl_loss)
+        mean = np.mean(ppl_loss)
+        for i in range(len(score)):
+            score[i] -= (ppl_loss[i] - mean) / std
         return score, re_sen, re_res
 
 
