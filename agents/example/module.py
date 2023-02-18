@@ -438,7 +438,7 @@ class agent(nn.Module):
         for j in range(len(sentences)):
             tmp_1, tmp_2, gen = self.replace_sentence(sentences[j])
             encoded_sentence = torch.LongTensor(self.ppl_tokenizer.encode(sentences[j])).to(self.device)
-            outputs = self.ppl_model(encoded_sentence, label=encoded_sentence, return_dict=True)
+            outputs = self.ppl_model(encoded_sentence, labels=encoded_sentence, return_dict=True)
             ppl_loss.append(math.exp(outputs.loss.item()))
 
             if gen == False:
