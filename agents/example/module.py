@@ -10,6 +10,7 @@ import re
 import wandb
 import math
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+from transformers import BertTokenizer, AutoTokenizer, AutoModelForSequenceClassification
 class agent(nn.Module):
     def __init__(self, config, prompt, bot):
         super().__init__()
@@ -23,9 +24,12 @@ class agent(nn.Module):
         self.bot = bot
         self.type = config.type
 
-        self.ppl_model = GPT2LMHeadModel.from_pretrained('gpt2-medium').to(self.device)
-        self.ppl_tokenizer = GPT2Tokenizer.from_pretrained('gpt2-medium')
-        self.ppl_model.eval()
+        # self.ppl_model = GPT2LMHeadModel.from_pretrained('gpt2-medium').to(self.device)
+        # self.ppl_tokenizer = GPT2Tokenizer.from_pretrained('gpt2-medium')
+        self.coherence_tokenizer = AutoTokenizer.from_pretrained('microsoft/DialogRPT-human-vs-rand')
+        self.coherence_model = AutoModelForSequenceClassification.from_pretrained('microsoft/DialogRPT-human-vs-rand').to(self.device)
+        self.coherence_model.eval()
+        # self.ppl_model.eval()
 
         self.word_dict = None
         self.train_task = None
@@ -216,6 +220,8 @@ class agent(nn.Module):
         predict_list, re_sen, re_res = self.bias_reward(model_response)
         for j in range(batch_size):
             conversation.append([re_sen[j], re_res[j]])
+        
+        coherence = self.coherence_reward(re_sen, re_res)
         # import pdb
         # pdb.set_trace()
         rpt = [0]
@@ -223,6 +229,10 @@ class agent(nn.Module):
         score = 0
         tempscore = []
         step = 0
+
+        for coherence_score in coherence:
+            score += self.args.coh_r * coherence_score
+
         if self.type == "emotion":
             for task_dict in predict_list:
                 if isinstance(task, str):
@@ -243,8 +253,8 @@ class agent(nn.Module):
         elif self.type == "bias":
             for s in predict_list:
                 score += s
-
                 tempscore.append(s)
+            
 
         batchwise_pt_len_rewards= []
         reward_collect = []
@@ -257,7 +267,7 @@ class agent(nn.Module):
             rewards = [[] for i in range(batch_size)]
 
             for i in range(batch_size):
-                reward = score_emo[i]
+                reward = score_emo[i] + self.args.coh_r * coherence[i]
                 num = self.args.max_pt_len if eos_index[i] >= self.args.max_pt_len else eos_index[i] 
                 discount_reward = 0
                 for j in range(num):
@@ -437,9 +447,9 @@ class agent(nn.Module):
 
         for j in range(len(sentences)):
             tmp_1, tmp_2, gen = self.replace_sentence(sentences[j])
-            encoded_sentence = torch.LongTensor(self.ppl_tokenizer.encode(sentences[j])).to(self.device)
-            outputs = self.ppl_model(encoded_sentence, labels=encoded_sentence, return_dict=True)
-            ppl_loss.append(math.exp(outputs.loss.item()))
+            # encoded_sentence = torch.LongTensor(self.ppl_tokenizer.encode(sentences[j])).to(self.device)
+            # outputs = self.ppl_model(encoded_sentence, labels=encoded_sentence, return_dict=True)
+            # ppl_loss.append(math.exp(outputs.loss.item()))
 
             if gen == False:
                 score.append(0.0)
@@ -461,12 +471,26 @@ class agent(nn.Module):
                 re_res.append([responses[0][0], responses[1][0]])
         # print("=================")
         # print(score, '\n')
-        ppl_loss = np.array(ppl_loss)
-        std = np.std(ppl_loss)
-        mean = np.mean(ppl_loss)
-        for i in range(len(score)):
-            score[i] -= (ppl_loss[i] - mean) / std
+        # ppl_loss = np.array(ppl_loss)
+        # std = np.std(ppl_loss)
+        # mean = np.mean(ppl_loss)
+        # for i in range(len(score)):
+        #     score[i] -= (ppl_loss[i] - mean) / std
         return score, re_sen, re_res
+    
+    def coherence_reward(self, re_sen, re_res):
+
+        # import pdb
+        # pdb.set_trace()
+        prepared_input = []
+        for context, sentence in zip(re_sen, re_res):
+        #    print(context, sentence)
+            prepared_input.append(context[0] + "<|endoftext|>" + sentence[0])
+        encoded_input = self.coherence_tokenizer(prepared_input, padding=True, return_tensors='pt').to(self.device)
+        outputs = self.coherence_model(**encoded_input, return_dict=True)
+        scores = torch.sigmoid(outputs.logits)
+     #   print(scores)
+        return scores[:, 0].detach().cpu().numpy()
 
 
 

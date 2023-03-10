@@ -1,4 +1,3 @@
-
 import numpy as np
 import torch
 import random
@@ -164,7 +163,7 @@ def main():
                 Agent.log_wandb(total_scores, 0, 0, 0, 0, batch)
 
             if batch % args.save_interval == 0:
-                
+                print('here')
                 if args.mode == 'test':
 
                     dest = f"results/{args.save_path}/"
@@ -187,9 +186,9 @@ def main():
                                 print(sample_prompt + ". 1: " + sample_splits[0] + ", " + sample_bots[0] + \
                                     '2: '+ sample_splits[1] + ", " + sample_bots[1])
                 else:
-
-                    if batch in [50, 500]:
-
+                    
+                    if batch in [20, 60, 100, 200, 500]:
+                        print(f'here batch:{batch}')
                         dest = f"results/{args.save_path}/"
                         os.makedirs(dest, exist_ok=True)
                         
@@ -208,29 +207,12 @@ def main():
                                 for k, v in Prompt.state_network.state_dict().items()},
                             join(f'results/{args.save_path}/',
                                     f'checkpoint-step-{batch}-value.pkl'))
-                        torch.save(
-                            Prompt.optimizer.state_dict(),
-                            join(f'results/{args.save_path}/',
-                                    f'checkpoint-step-{batch}-optimizer.pkl'
-                        ))
+                        # torch.save(
+                        #     Prompt.optimizer.state_dict(),
+                        #     join(f'results/{args.save_path}/',
+                        #             f'checkpoint-step-{batch}-optimizer.pkl'
+                        # ))
 
-        if batch > args.end_batch:
-            torch.save(
-                            {k: (v.cpu() if v is not None else None)  # save to cpu tensors
-                                for k, v in Prompt.model.state_dict().items()},
-                            join(f'results/{args.save_path}/',
-                                    f'checkpoint-step-{batch-1}-prompt.pkl'))
-            torch.save(
-                            {k: (v.cpu() if v is not None else None)  # save to cpu tensors
-                                for k, v in Prompt.state_network.state_dict().items()},
-                            join(f'results/{args.save_path}/',
-                                    f'checkpoint-step-{batch-1}-value.pkl'))
-            torch.save(
-                Prompt.optimizer.state_dict(),
-                            join(f'results/{args.save_path}/',
-                                    f'checkpoint-step-{batch}-optimizer.pkl'
-                        ))
-            break
 
 def set_arguments(parser):
     parser.add_argument("--task", type=str, default="none") # for finetune task
