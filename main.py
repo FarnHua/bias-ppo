@@ -64,6 +64,7 @@ def main():
         total_loss = 0
         total_grad = 0
         total_score = 0
+        total_coherence_score = 0
         total_mse = 0
         total_pg = 0
         total_entropy = 0
@@ -102,6 +103,7 @@ def main():
 
                         loss, score, _, _, _ = Agent.train_forward(inputs_id, mask, ll, flatten_dict)
                         score['score'] /= (args.sample_time * len(meta_total))
+                        score['coherence_score'] /= (args.sample_time * len(meta_total))
                         loss /= (args.sample_time * len(meta_total))
                         loss.backward()
                         torch.nn.utils.clip_grad_norm_(Prompt.model.parameters(), 1.0)
@@ -139,6 +141,7 @@ def main():
                         total_pg += pg_loss
                         total_entropy += entropy
                         total_score += score['score']
+                        total_coherence_score += score['coherence_score']
                         scores.append(score)
                 Prompt.model.zero_grad()
                 Prompt.state_network.zero_grad()
@@ -163,7 +166,7 @@ def main():
                 Agent.log_wandb(total_scores, 0, 0, 0, 0, batch)
 
             if batch % args.save_interval == 0:
-                print('here')
+                
                 if args.mode == 'test':
 
                     dest = f"results/{args.save_path}/"

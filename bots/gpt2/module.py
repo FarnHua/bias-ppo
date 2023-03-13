@@ -15,7 +15,7 @@ class bot(nn.Module):
         self.tokenizer = GPT2Tokenizer.from_pretrained("gpt2-medium")
         self.tokenizer.pad_token = self.tokenizer.eos_token
         self.lm = GPT2LMHeadModel.from_pretrained("gpt2-medium")
-        self.lm.load_state_dict(torch.load('./results/bias-ppo2-blender/checkpoint-step-1000-prompt.pkl'))
+        # self.lm.load_state_dict(torch.load('./results/bias-ppo2-blender/checkpoint-step-1000-prompt.pkl'))
         self.lm.to(self.device)
         self.lm.eval()
 
@@ -54,8 +54,8 @@ class bot(nn.Module):
             append = torch.tensor([[1] for i in range(len(sentences))]).to(self.device)
             # m = torch.cat((m, append), 1)
             position_ids = m.long().cumsum(-1) - 1
-            position_ids.masked_fill_(m == 0, 1)
-            position_ids = position_ids[:, -1].unsqueeze(-1).to(self.device)
+            position_ids.masked_fill_(m == 0, 1).to(self.device)
+            # position_ids = position_ids[:, -1].unsqueeze(-1).to(self.device)
             temp_sen = [[] for i in range(len(sentences))]
             for i in range(len(sentences)):
                 temp_sen[i].extend(sentences[i])
@@ -66,14 +66,20 @@ class bot(nn.Module):
                 m = torch.cat((m, append), 1)
                 position_ids = m.long().cumsum(-1) - 1
                 position_ids.masked_fill_(m == 0, 1)
+
                 position_ids = position_ids[:, -1].unsqueeze(-1).to(self.device)
 
                 prev_input = prev_input.squeeze(0).squeeze(1)
+                if i == 0:
+                    prev_input = prev_input[:, -1, :]
                 # prev_input = prev_input / 2.2
-                prev_input = torch.softmax(prev_input[:, :50257], dim=-1)
-                # prev_input = self.top_k_top_p_filtering(prev_input)
+                # prev_input = torch.softmax(prev_input[:, :50257], dim=-1)
+
+                prev_input = self.top_k_top_p_filtering(prev_input)
+                
                 prev_input = torch.multinomial(prev_input, num_samples=1)
                 # prev_input = torch.argmax(prev_input, dim=-1)[:, None]
+                
 
                 if i == 0:
                     for j in range(len(sentences)):    
@@ -88,7 +94,7 @@ class bot(nn.Module):
             a = [[self.tokenizer.decode(x).replace('<|endoftext|>', '')] for x in temp_sen]
         return a
 
-    def top_k_top_p_filtering(self, logits, top_k = 0, top_p = 0.95, temperature = 1.0):
+    def top_k_top_p_filtering(self, logits, top_k = 50, top_p = 0.95, temperature = 1.0):
         # logits = torch.softmax(logits, dim=-1)
         filter_value = -float('inf')
 

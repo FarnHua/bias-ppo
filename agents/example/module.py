@@ -93,10 +93,10 @@ class agent(nn.Module):
 
     def sample_forward(self, inputs_id, mask, ll, task, model, state_net, word_dict=None):
         
-        ## only use the first word in the input sentence
-        prev_input = inputs_id[:,0].unsqueeze(1).to(self.device)
-        mask = mask[:, 0].unsqueeze(1).to(self.device)
-        
+        ## only use the first two word in the input sentence
+        prev_input = inputs_id[:, :2].to(self.device)
+        mask = mask[:, :2].to(self.device)
+       
         # The prompt sentence
         # Input: emotion task + input
         if not isinstance(model, str): ## if use model prompt
@@ -112,7 +112,7 @@ class agent(nn.Module):
             temp_sen = [[] for i in range(batch_size)]
             ## put the first word into temp_sen
             for i in range(len(prev_input)):
-                temp_sen[i].extend(prev_input[i])
+                temp_sen[i].extend([t.item() for t in prev_input[i]])
 
             ## states: prev_input
             ## action: next token 
@@ -124,39 +124,49 @@ class agent(nn.Module):
             temperature = 1
             # mask = torch.cat((mask, append), 1)
             position_ids = mask.long().cumsum(-1) - 1
-            position_ids.masked_fill_(mask == 0, 1)
-            position_ids = position_ids[:, -1].unsqueeze(-1).to(self.device)
-            eos_index = [0]*batch_size
+            position_ids.masked_fill_(mask == 0, 1).to(self.device)
+            # position_ids = position_ids[:, -1].unsqueeze(-1).to(self.device)
+            eos_index = [0] * batch_size
             past = None
-
+            
             with torch.no_grad():
                 for i in range(self.args.max_pt_len):
 
                     prev_input = prev_input.to(self.device)
+                    
                     old_mask.append(mask.detach().cpu())
                     old_states.append(prev_input.detach().cpu())
-                    temp_past = past
+                    temp_past = past        
                     output = model(prev_input, past_key_values=temp_past, attention_mask=mask, position_ids=position_ids)
                     logits, past = output['logits'], output['past_key_values']
 
-                    # prev_input = prev_input.to(self.device)   
+                    # prev_input = prev_input.to(self.device)  
+                    
                     mask = torch.cat((mask, append), 1)
                     position_ids = mask.long().cumsum(-1) - 1
                     position_ids.masked_fill_(mask == 0, 1)
                     position_ids = position_ids[:, -1].unsqueeze(-1).to(self.device)
                     logits = logits.squeeze(0).squeeze(1)
-                    soft_logits = logits / temperature
+                    # soft_logits = logits / temperature
                     
-                    probs = torch.softmax(soft_logits,dim=-1)
+                    # probs = torch.softmax(soft_logits,dim=-1)
                     
+                    if i == 0:
+                        probs = self.top_k_top_p_filtering(logits[:, -1, :])
+                    else:
+                        probs = self.top_k_top_p_filtering(logits)
+
                     dist = Categorical(probs) 
-                    prev_input = dist.sample()[:,None]
+                    tmp_prev_input = dist.sample()
+                    prev_input = dist.sample()[:, None]
+
                     old_actions.append(prev_input.detach().cpu())
                     old_logprobs.append(dist.log_prob(prev_input.squeeze()).detach().cpu())
-
+                    
                     for j in range(batch_size):
                         origin_index = j%batch_size
                         temp_sen[j].append(prev_input[origin_index].item())
+                        
                 
             ##########################################################################################
             eos_index = [len(temp_sen[0]) for j in range(len(temp_sen))]
@@ -219,6 +229,7 @@ class agent(nn.Module):
 
         predict_list, re_sen, re_res = self.bias_reward(model_response)
         for j in range(batch_size):
+            # print(re_sen[j], re_res[j])
             conversation.append([re_sen[j], re_res[j]])
         
         coherence = self.coherence_reward(re_sen, re_res)
@@ -308,6 +319,7 @@ class agent(nn.Module):
                         'flatten_actions': flatten_actions,
                         'flatten_mask': flatten_mask,
                         'flatten_rewards': flatten_rewards,
+                        'coherence_score': sum(coherence),
                         'r_mean': r_mean,
                         'r_std': r_std,
                         'eos_index': eos_index,
@@ -357,9 +369,13 @@ class agent(nn.Module):
             flatten_actions[num] = flatten_actions[num].to(self.device)
             flatten_mask[num] = flatten_mask[num].to(self.device)
             position_ids = flatten_mask[num].long().cumsum(-1) - 1
-            position_ids.masked_fill_(flatten_mask[num] == 0, 1)
-            position_ids = position_ids[:, -1].unsqueeze(-1).to(self.device)
+            if num == 0:
+                position_ids.masked_fill_(flatten_mask[num] == 0, 1).to(self.device)
+            else:
+                position_ids.masked_fill_(flatten_mask[num] == 0, 1)
+                position_ids = position_ids[:, -1].unsqueeze(-1).to(self.device)
             temp_past = past
+
             output = self.prompt.model(flatten_states[num], past_key_values=temp_past, attention_mask=flatten_mask[num], position_ids=position_ids)
             logits, past = output['logits'], output['past_key_values']
             hidden_states = self.prompt.model.transformer(flatten_states[num],past_key_values=temp_past, attention_mask=flatten_mask[num], position_ids=position_ids)[0]
@@ -369,8 +385,15 @@ class agent(nn.Module):
         
         outter_count = 0
         for num in range(len(flatten_states)):
-            prediction = prediction_list[num]
-            actionprobs = F.softmax(logits_list[num],dim=-1)
+            
+            if num == 0:
+                prediction = prediction_list[num][:, -1, :].unsqueeze(1)
+                # actionprobs = F.softmax(logits_list[num][:, -1, :].unsqueeze(1),dim=-1)
+                actionprobs = self.top_k_top_p_filtering(logits_list[num][:, -1, :])
+            else:
+                prediction = prediction_list[num]
+
+                actionprobs = self.top_k_top_p_filtering(logits_list[num].squeeze())
             rewards_tensor = torch.tensor(flatten_rewards[num]).to(self.device)
             rewards_norm = (rewards_tensor - r_mean) / (r_std + 1e-9) + r_mean
 
@@ -379,7 +402,9 @@ class agent(nn.Module):
             dist_entropy = dist.entropy()
 
             ratios = torch.exp(action_logprobs.squeeze() - flatten_logprobs[num])
+            
             advantages = rewards_norm - prediction.squeeze().detach()
+      
             surr1 = ratios * advantages
             surr2 = torch.clamp(ratios, 1 - eps_clip, 1 + eps_clip) * advantages
             mseloss=nn.MSELoss()
@@ -542,6 +567,37 @@ class agent(nn.Module):
         
         return " ".join(ret_1), " ".join(ret_2), gen
 
+    def top_k_top_p_filtering(self, logits, top_k = 40, top_p = 0.95, temperature = 1.0):
+        # logits = torch.softmax(logits, dim=-1)
+        filter_value = -float('inf')
+
+        if top_k > 0:
+            values, _ = torch.topk(logits, top_k)
+            # print(values.shape)
+            min_values = values[:, -1].unsqueeze(1).repeat(1, logits.shape[-1])
+            logits = torch.where(logits < min_values, 
+                        torch.ones_like(logits, dtype=logits.dtype) * filter_value, 
+                        logits)
+
+        if top_p > 0.0:
+                # Compute cumulative probabilities of sorted tokens
+                sorted_logits, sorted_indices = torch.sort(logits, descending=True)
+                cumulative_probabilities = torch.cumsum(F.softmax(sorted_logits, dim=-1), dim=-1)
+
+                # Remove tokens with cumulative probability above the threshold
+                sorted_indices_to_remove = cumulative_probabilities > top_p
+                # Shift the indices to the right to keep also the first token above the threshold
+                sorted_indices_to_remove[..., 1:] = sorted_indices_to_remove[..., :-1].clone()
+                sorted_indices_to_remove[..., 0] = 0
+                
+                sorted_logits = sorted_logits.masked_fill_(sorted_indices_to_remove, filter_value)
+                logits = torch.zeros_like(logits).scatter(1, sorted_indices, sorted_logits)
+
+        logits = logits / temperature
+        logits = torch.softmax(logits, dim=-1)
+
+        return logits
+
     def log_wandb(self, flatten_dicts, total_loss, total_mse, total_pg, total_entropy, batch):
         meta_total = len(flatten_dicts)
         training_score = 0
@@ -549,12 +605,13 @@ class agent(nn.Module):
         control_score = 0
         for score in flatten_dicts:
             training_score += score['score']
+            coherence_score += score['coherence_score']
 
         wandb.log({'outerloss': total_loss / meta_total , \
                     'outermse': total_mse / meta_total, \
                     'outerpg': total_pg / meta_total, \
                     'outerentropy': total_entropy / meta_total, \
-                    'outerscore': training_score / self.args.bz / meta_total}, \
+                    'outerscore': training_score / self.args.bz / meta_total, \
                  #   'controllable_score':control_score / self.args.bz / meta_total, \
-                 #   'coherence_score': coherence_score / self.args.bz / meta_total} \ 
+                   'coherence_score': coherence_score / self.args.bz / meta_total}, \
                     step=batch)
