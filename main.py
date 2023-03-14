@@ -45,7 +45,7 @@ def main():
         print("which mode do you want to use: pretrain / finetune / test")
         raise
     
-    wandb.init(mode=args.wandb, project='bias_phase1', tags=tags, name=args.exp_name, entity="chatbot_ntu")
+    wandb.init(mode=args.wandb, project='bias-ppo', tags=tags, name=args.exp_name, entity="jacksukk")
     wandb.config.update(args)
 
     agent = importlib.import_module('.module', f"agents.{args.agent}").agent
@@ -58,7 +58,7 @@ def main():
     Dataset = dataset(args.path, Prompt.tokenizer)
     Agent = agent(args, Prompt, Bot)
     dataloader = DataLoader(Dataset, batch_size=args.bz, shuffle=True, num_workers=0)
-    pbar = tqdm(dataloader,position=0)
+    pbar = tqdm(dataloader, position=0)
     batch = 0
 
     for inputs_id, mask, ll in pbar:
@@ -182,10 +182,10 @@ def main():
                                 # pdb.set_trace()
                                 # sample_sentence = input_sentence[i]
                                 # f.write(sample_prompt + ", " + sample_sentence + ", " + sample_bot + '\n')
-                                f.write(sample_prompt + ". 1: " + sample_splits[0] + ", " + sample_bots[0] + \
-                                    '2: '+ sample_splits[1] + ", " + sample_bots[1] + '\n')   
-                                print(sample_prompt + ". 1: " + sample_splits[0] + ", " + sample_bots[0] + \
-                                    '2: '+ sample_splits[1] + ", " + sample_bots[1])
+                                f.write(sample_prompt + ". 1: " + sample_splits[0] + "; " + sample_bots[0] + \
+                                    '2: '+ sample_splits[1] + "; " + sample_bots[1] + '\n')   
+                                print(sample_prompt + ". 1: " + sample_splits[0] + "; " + sample_bots[0] + \
+                                    '2: '+ sample_splits[1] + "; " + sample_bots[1])
                 else:
 
                     if batch in [50, 500]:
@@ -260,6 +260,7 @@ def set_arguments(parser):
     parser.add_argument("--mse_lr", type=float, default=1)
     parser.add_argument("--ep_lr", type=float, default=0.01)
     parser.add_argument("--coh_r", type=float, default=0.01)
+    parser.add_argument("--lm_lr", type=float, default=0.5)
     parser.add_argument("--num_testing", type=int, default=1)
     parser.add_argument("--iters", type=str, default=25)
     parser.add_argument("--tags", type=str, default=None)
