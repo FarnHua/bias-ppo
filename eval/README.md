@@ -1,4 +1,4 @@
-* Download regard_v3 (https://reurl.cc/Gep9yy) into the dir eval        
+* Download regard_v3 (https://reurl.cc/Gep9yy) to this directory.
         
 
         cd ./eval
