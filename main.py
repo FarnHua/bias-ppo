@@ -1,3 +1,4 @@
+
 import numpy as np
 import torch
 import random
@@ -57,14 +58,13 @@ def main():
     Dataset = dataset(args.path, Prompt.tokenizer)
     Agent = agent(args, Prompt, Bot)
     dataloader = DataLoader(Dataset, batch_size=args.bz, shuffle=True, num_workers=0)
-    pbar = tqdm(dataloader,position=0)
+    pbar = tqdm(dataloader, position=0)
     batch = 0
 
     for inputs_id, mask, ll in pbar:
         total_loss = 0
         total_grad = 0
         total_score = 0
-        total_coherence_score = 0
         total_mse = 0
         total_pg = 0
         total_entropy = 0
@@ -103,7 +103,6 @@ def main():
 
                         loss, score, _, _, _ = Agent.train_forward(inputs_id, mask, ll, flatten_dict)
                         score['score'] /= (args.sample_time * len(meta_total))
-                        score['coherence_score'] /= (args.sample_time * len(meta_total))
                         loss /= (args.sample_time * len(meta_total))
                         loss.backward()
                         torch.nn.utils.clip_grad_norm_(Prompt.model.parameters(), 1.0)
@@ -141,7 +140,6 @@ def main():
                         total_pg += pg_loss
                         total_entropy += entropy
                         total_score += score['score']
-                        total_coherence_score += score['coherence_score']
                         scores.append(score)
                 Prompt.model.zero_grad()
                 Prompt.state_network.zero_grad()
@@ -163,7 +161,7 @@ def main():
                 for flatten_dict in sample_dicts:
                     total_scores.append(flatten_dict)
                 
-                Agent.log_wandb(total_scores, 0, 0, 0, 0, batch)
+                # Agent.log_wandb(total_scores, 0, 0, 0, 0, batch)
 
             if batch % args.save_interval == 0:
                 
@@ -184,14 +182,14 @@ def main():
                                 # pdb.set_trace()
                                 # sample_sentence = input_sentence[i]
                                 # f.write(sample_prompt + ", " + sample_sentence + ", " + sample_bot + '\n')
-                                f.write(sample_prompt + ". 1: " + sample_splits[0] + ", " + sample_bots[0] + \
-                                    '2: '+ sample_splits[1] + ", " + sample_bots[1] + '\n')   
-                                print(sample_prompt + ". 1: " + sample_splits[0] + ", " + sample_bots[0] + \
-                                    '2: '+ sample_splits[1] + ", " + sample_bots[1])
+                                f.write(sample_prompt + ". 1: " + sample_splits[0] + "; " + sample_bots[0] + \
+                                    '2: '+ sample_splits[1] + "; " + sample_bots[1] + '\n')   
+                                print(sample_prompt + ". 1: " + sample_splits[0] + "; " + sample_bots[0] + \
+                                    '2: '+ sample_splits[1] + "; " + sample_bots[1])
                 else:
-                    
+
                     if batch in [20, 60, 100, 200, 500]:
-                        print(f'here batch:{batch}')
+
                         dest = f"results/{args.save_path}/"
                         os.makedirs(dest, exist_ok=True)
                         
@@ -210,16 +208,12 @@ def main():
                                 for k, v in Prompt.state_network.state_dict().items()},
                             join(f'results/{args.save_path}/',
                                     f'checkpoint-step-{batch}-value.pkl'))
-                        # torch.save(
-                        #     Prompt.optimizer.state_dict(),
-                        #     join(f'results/{args.save_path}/',
-                        #             f'checkpoint-step-{batch}-optimizer.pkl'
-                        # ))
-
+                        
+        
 
 def set_arguments(parser):
     parser.add_argument("--task", type=str, default="none") # for finetune task
-    parser.add_argument("--agent", type=str, default="example")
+    parser.add_argument("--agent", type=str, default="ppo_ipx")
     parser.add_argument("--config", type=str, default="example")
     parser.add_argument("--bot", type=str, default="example")
     parser.add_argument("--prompt", type=str, default="GPT2")
@@ -245,19 +239,20 @@ def set_arguments(parser):
     parser.add_argument("--mse_lr", type=float, default=1)
     parser.add_argument("--ep_lr", type=float, default=0.01)
     parser.add_argument("--coh_r", type=float, default=0.01)
+    parser.add_argument("--lm_lr", type=float, default=0.5)
     parser.add_argument("--num_testing", type=int, default=1)
     parser.add_argument("--iters", type=str, default=25)
     parser.add_argument("--tags", type=str, default=None)
     parser.add_argument('--init_step', type=str, default="")
     # parser.add_argument('--extra_label', type=str, default='train_word_list.txt')
     parser.add_argument("--wandb", type=str, default='enabled')
+    
 
     args = parser.parse_args()
 
     return args
 
 def fix_seed(args):
-
     np.random.seed(args.seed)
     torch.random.manual_seed(args.seed)
     torch.cuda.manual_seed(args.seed)
