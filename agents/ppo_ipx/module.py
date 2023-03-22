@@ -19,7 +19,8 @@ class agent(nn.Module):
         """
         """
         self.args = config
-        self.device = config.device
+        self.prompt_device = prompt.device
+        self.bot_device = bot.device
         self.mode = config.mode
         self.prompt = prompt
         self.bot = bot
@@ -90,9 +91,10 @@ class agent(nn.Module):
     def sample_forward(self, inputs_id, mask, ll, task, model, state_net, word_dict=None):
         
         ## only use the first word in the input sentence
-        prev_input = inputs_id[:,0].unsqueeze(1).to(self.device)
-        mask = mask[:, 0].unsqueeze(1).to(self.device)
-        
+        prev_input = torch.LongTensor([[self.prompt.tokenizer.bos_token_id] * inputs_id.shape[0]]).squeeze(0).unsqueeze(1).to(self.prompt_device)
+        # prev_input = inputs_id[:,0].unsqueeze(1).to(self.prompt_device)
+        mask = mask[:, 0].unsqueeze(1).to(self.prompt_device)
+
         # The prompt sentence
         # Input: emotion task + input
         if not isinstance(model, str): ## if use model prompt
@@ -103,12 +105,12 @@ class agent(nn.Module):
             ## prev_input = torch.LongTensor([self.prompt.tokenizer.encode('<|endoftext|>') for _ in range(inputs_id.shape[0])]).to(self.device)
             # The start of auto-regressive decoding of speaker 1 (chatbot)
             batch_size = inputs_id.shape[0]
-            append = torch.tensor([[1] for i in range(batch_size)]).to(self.device)
+            append = torch.tensor([[1] for i in range(batch_size)]).to(self.prompt_device)
 
             temp_sen = [[] for i in range(batch_size)]
             ## put the first word into temp_sen
-            for i in range(len(prev_input)):
-                temp_sen[i].extend(prev_input[i])
+            # for i in range(len(prev_input)):
+            #     temp_sen[i].extend(prev_input[i])
 
             ## states: prev_input
             ## action: next token 
@@ -117,18 +119,18 @@ class agent(nn.Module):
             old_logprobs = []
             old_mask = []
             old_actions = []
-            temperature = 0.7
+            temperature = 1.2
             # mask = torch.cat((mask, append), 1)
             position_ids = mask.long().cumsum(-1) - 1
             position_ids.masked_fill_(mask == 0, 1)
-            position_ids = position_ids[:, -1].unsqueeze(-1).to(self.device)
+            position_ids = position_ids[:, -1].unsqueeze(-1).to(self.prompt_device)
             eos_index = [0]*batch_size
             past = None
 
             with torch.no_grad():
                 for i in range(self.args.max_pt_len):
 
-                    prev_input = prev_input.to(self.device)
+                    prev_input = prev_input.to(self.prompt_device)
                     old_mask.append(mask.detach().cpu())
                     old_states.append(prev_input.detach().cpu())
                     temp_past = past
@@ -139,7 +141,7 @@ class agent(nn.Module):
                     mask = torch.cat((mask, append), 1)
                     position_ids = mask.long().cumsum(-1) - 1
                     position_ids.masked_fill_(mask == 0, 1)
-                    position_ids = position_ids[:, -1].unsqueeze(-1).to(self.device)
+                    position_ids = position_ids[:, -1].unsqueeze(-1).to(self.prompt_device)
                     logits = logits.squeeze(0).squeeze(1)
                     soft_logits = logits / temperature
                     probs = torch.softmax(soft_logits, dim=-1)
@@ -162,8 +164,11 @@ class agent(nn.Module):
                     eos_index[j] = temp_sen[j].index(dialoggpt_end_index)
                     temp_sen[j] = temp_sen[j][:eos_index[j]]
 
-            model_response = [self.prompt.tokenizer.decode(x).split('<|endoftext|>')[0] for x in temp_sen]
+            
+            
+            model_response = [self.prompt.tokenizer.decode(x, skip_special_tokens=True).split('<|endoftext|>')[0] for x in temp_sen]
             first_input = list(inputs_id.cpu().detach().numpy())
+
             # model_response_input_ids = [np.array(x) for x in temp_sen]
 
             for j in range(batch_size):
@@ -320,10 +325,10 @@ class agent(nn.Module):
         task = flatten_dict['task']
         r_mean, r_std = flatten_dict['r_mean'], flatten_dict['r_std']
         eos_index = flatten_dict['eos_index']
-        inputs_id = inputs_id.to(self.device)
+        inputs_id = inputs_id.to(self.prompt_device)
         batch_size = inputs_id.shape[0]
 
-        mask = mask.to(self.device)
+        mask = mask.to(self.prompt_device)
         # _, past, flatten_all, _ = self.prompt.prepare_input(task, inputs_id, mask, self.prompt.model)
         past = None
         eps_clip = 0.2
@@ -347,13 +352,13 @@ class agent(nn.Module):
         lm_loss = outputs['loss']
         loss += lm_loss * self.args.lm_lr
         for num in range(len(flatten_states)):
-            flatten_states[num] = flatten_states[num].to(self.device)
-            flatten_logprobs[num] = flatten_logprobs[num].to(self.device)
-            flatten_actions[num] = flatten_actions[num].to(self.device)
-            flatten_mask[num] = flatten_mask[num].to(self.device)
+            flatten_states[num] = flatten_states[num].to(self.prompt_device)
+            flatten_logprobs[num] = flatten_logprobs[num].to(self.prompt_device)
+            flatten_actions[num] = flatten_actions[num].to(self.prompt_device)
+            flatten_mask[num] = flatten_mask[num].to(self.prompt_device)
             position_ids = flatten_mask[num].long().cumsum(-1) - 1
             position_ids.masked_fill_(flatten_mask[num] == 0, 1)
-            position_ids = position_ids[:, -1].unsqueeze(-1).to(self.device)
+            position_ids = position_ids[:, -1].unsqueeze(-1).to(self.prompt_device)
             temp_past = past
             output = self.prompt.model(flatten_states[num], past_key_values=temp_past, attention_mask=flatten_mask[num], position_ids=position_ids)
             logits, past = output['logits'], output['past_key_values']
@@ -366,7 +371,7 @@ class agent(nn.Module):
         for num in range(len(flatten_states)):
             prediction = prediction_list[num]
             actionprobs = F.softmax(logits_list[num],dim=-1)
-            rewards_tensor = torch.tensor(flatten_rewards[num]).to(self.device)
+            rewards_tensor = torch.tensor(flatten_rewards[num]).to(self.prompt_device)
             rewards_norm = (rewards_tensor - r_mean) / (r_std + 1e-9) + r_mean
 
             dist = Categorical(actionprobs)
