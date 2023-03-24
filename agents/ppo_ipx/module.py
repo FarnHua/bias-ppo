@@ -523,10 +523,12 @@ class agent(nn.Module):
         coherence_score = 0
         control_score = 0
         lm_loss = 0
+        
+
         for score in flatten_dicts:
             training_score += score['score']
-            
             lm_loss += score['lm_loss']
+
         wandb.log({'outerloss': total_loss / meta_total , \
                     'outermse': total_mse / meta_total, \
                     'outerpg': total_pg / meta_total, \
@@ -536,3 +538,22 @@ class agent(nn.Module):
                  #   'controllable_score':control_score / self.args.bz / meta_total, \
                  #   'coherence_score': coherence_score / self.args.bz / meta_total} \ 
                     step=batch)
+        if batch % 20 == 1:
+            for flatten_dict in flatten_dicts:
+                bot_response=flatten_dict['conversation']
+                prompt=flatten_dict['model_response']
+                input_sentence=flatten_dict['input_string']
+                for i in range(len(bot_response)):
+                    sample_splits = bot_response[i][0]
+                    sample_bots = bot_response[i][1]
+                    sample_prompt = prompt[i]
+                    self.table.add_data(batch, sample_prompt, sample_splits[0], sample_bots[0], sample_splits[1], sample_bots[1])
+                    # f.write(sample_prompt + ". 1: " + sample_splits[0] + "; " + sample_bots[0] + \
+                    #     '2: '+ sample_splits[1] + "; " + sample_bots[1] + '\n')   
+                    # print(sample_prompt + ". 1: " + sample_splits[0] + "; " + sample_bots[0] + \
+                    #     '2: '+ sample_splits[1] + "; " + sample_bots[1])
+            
+            new_table = wandb.Table(
+                columns=self.table.columns, data=self.table.data
+            )
+            wandb.log({"conversation": new_table})
