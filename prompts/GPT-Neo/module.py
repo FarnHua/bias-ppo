@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from transformers import GPTNeoForCausalLM, GPT2Tokenizer
+from transformers import GPTNeoForCausalLM, GPT2Tokenizer, GPTNeoConfig
 from prompts.example.module import prompt as base
 from torch.optim import AdamW
 from copy import deepcopy
@@ -13,12 +13,13 @@ class prompt(base):
         self.model = DialogueGPT(config)
         """
         self.args = config
-        self.device = torch.device("cuda:1")
-        # self.configuration = GPT2Config.from_pretrained('gpt2-medium')
-        self.tokenizer = GPT2Tokenizer.from_pretrained("EleutherAI/gpt-neo-1.3B", bos_token='<|startoftext|>',eos_token='<|endoftext|>', pad_token='<|pad|>')  
+        self.train_device = torch.device("cuda:1")
+        self.demo_device = torch.device("cuda:2")
+        self.configuration = GPTNeoConfig.from_pretrained("farnhua/neo-gender")
+        self.tokenizer = GPT2Tokenizer.from_pretrained("farnhua/neo-gender")  
     
-        self.model = GPTNeoForCausalLM.from_pretrained("./gpt2_finetune/checkpoint-750", local_files_only=True)
-        self.model_demo = GPTNeoForCausalLM.from_pretrained("./gpt2_finetune/checkpoint-750", local_files_only=True)
+        self.model = GPTNeoForCausalLM.from_pretrained("farnhua/neo-gender")
+        self.model_demo = GPTNeoForCausalLM.from_pretrained("farnhua/neo-gender")
         self.state_network = nn.Sequential(nn.Dropout(0.1), nn.Linear(2048, 1))
         self.state_network_demo = nn.Sequential(nn.Dropout(0.1), nn.Linear(2048,1))
 
@@ -27,8 +28,8 @@ class prompt(base):
             print(f"[Load LM from saved point]: the original path: results/{config.model}/checkpoint-step-{self.args.init_step}-prompt.pkl")
             print(f"[Load VM from saved point]: the original path: results/{config.model}/checkpoint-step-{self.args.init_step}-value.pkl")
             ## add config later
-            self.model = GPT2LMHeadModel.from_pretrained(config.model+f"/checkpoint-step-{self.args.init_step}-prompt.pkl", local_files_only=True) 
-            self.model_demo = GPT2LMHeadModel.from_pretrained(config.model+f"/checkpoint-step-{self.args.init_step}-prompt.pkl", local_files_only=True)
+            self.model = GPTNeoForCausalLM.from_pretrained(config.model+f"/checkpoint-step-{self.args.init_step}-prompt.pkl", config=self.configuration, local_files_only=True) 
+            self.model_demo = GPTNeoForCausalLM.from_pretrained(config.model+f"/checkpoint-step-{self.args.init_step}-prompt.pkl", config=self.configuration, local_files_only=True)
             self.state_network.load_state_dict(torch.load(config.model + f"/checkpoint-step-{self.args.init_step}-value.pkl"))
             self.state_network_demo.load_state_dict(torch.load(config.model + f"/checkpoint-step-{self.args.init_step}-value.pkl"))
 
@@ -44,10 +45,10 @@ class prompt(base):
         self.optimizer =  AdamW(self.optimizer_grouped_parameters, self.args.inner_lr)
         
 
-        self.model.to(self.device)
-        self.model_demo.to(self.device)
-        self.state_network.to(self.device)
-        self.state_network_demo.to(self.device)
+        self.model.to(self.train_device)
+        self.model_demo.to(self.demo_device)
+        self.state_network.to(self.train_device)
+        self.state_network_demo.to(self.demo_device)
         self.model_demo.eval()
         self.state_network_demo.eval()
     

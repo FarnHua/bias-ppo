@@ -48,9 +48,9 @@ def main():
     wandb.init(mode=args.wandb, project='bias_phase1', tags=tags, name=args.exp_name, entity="chatbot_ntu")
     wandb.config.update(args)
 
+    bot = importlib.import_module(".module",f"bots.{args.bot}").bot
     agent = importlib.import_module('.module', f"agents.{args.agent}").agent
     prompt = importlib.import_module(".module",f"prompts.{args.prompt}").prompt
-    bot = importlib.import_module(".module",f"bots.{args.bot}").bot
     dataset =importlib.import_module(".module",f"datasets.{args.dataset}").dataset
     
     Bot = bot(args)
@@ -90,7 +90,7 @@ def main():
             for idx, task in enumerate(meta_total):
                 for s in range(args.sample_time):
                     flatten_dict = Agent.sample_forward(inputs_id, mask, \
-                        ll, task, Prompt.model_demo, Prompt.state_network_demo)
+                        ll, task, Prompt.model_demo, Prompt.state_network_demo, Prompt.demo_device)
                     sample_dicts.append(flatten_dict)
 
             if args.mode != 'test':
@@ -101,7 +101,7 @@ def main():
                     random.shuffle(sample_dicts)
                     for flatten_dict in sample_dicts:
 
-                        loss, score, _, _, _ = Agent.train_forward(inputs_id, mask, ll, flatten_dict)
+                        loss, score, _, _, _ = Agent.train_forward(inputs_id, mask, ll, flatten_dict, Prompt.train_device)
                         score['score'] /= (args.sample_time * len(meta_total))
                         loss /= (args.sample_time * len(meta_total))
                         loss.backward()
@@ -130,10 +130,10 @@ def main():
                     Prompt.model.eval()
                     for idx, task in enumerate(meta_total):
                         flatten_dict = Agent.sample_forward(inputs_id, mask, ll, task, \
-                            Prompt.model, Prompt.state_network)
+                            Prompt.model, Prompt.state_network, Prompt.train_device)
 
                         loss, score, mse, pg_loss, entropy = \
-                            Agent.train_forward(inputs_id, mask, ll, flatten_dict)
+                            Agent.train_forward(inputs_id, mask, ll, flatten_dict, Prompt.train_device)
                         
                         total_loss += loss.item()
                         total_mse += mse
@@ -188,7 +188,7 @@ def main():
                                     '2: '+ sample_splits[1] + "; " + sample_bots[1])
                 else:
 
-                    if batch in [20, 60, 100, 200, 500]:
+                    if batch in [20, 500, 1000]:
 
                         dest = f"results/{args.save_path}/"
                         os.makedirs(dest, exist_ok=True)
@@ -218,7 +218,7 @@ def set_arguments(parser):
     parser.add_argument("--bot", type=str, default="example")
     parser.add_argument("--prompt", type=str, default="GPT2")
     parser.add_argument("--dataset", type=str, default="Daily") # for finetune task
-    parser.add_argument("--path", type=str, default="./data/daily_train_key.json", help="path for dataset")
+    parser.add_argument("--path", type=str, default="./data/netflix_train_key.csv", help="path for dataset")
     parser.add_argument("--mode", type=str, default="test", help="The current option is [ 'pretrain', 'finetune', 'test' ]")
     parser.add_argument("--type", type=str, default=None, help="The current option is [ 'word', 'emotion' ]")
     parser.add_argument("--exp_name", type=str, default="")
