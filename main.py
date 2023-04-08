@@ -1,4 +1,3 @@
-
 import numpy as np
 import torch
 import random
@@ -56,12 +55,15 @@ def main():
     Bot = bot(args)
     Prompt = prompt(args)
     Dataset = dataset(args.path, Prompt.tokenizer)
-    Agent = agent(args, Prompt, Bot)
     dataloader = DataLoader(Dataset, batch_size=args.bz, shuffle=True, num_workers=0)
-    pbar = tqdm(dataloader, position=0)
+    Agent = agent(args, Prompt, Bot, dataloader)
+    
+    # pbar = tqdm(dataloader, position=0)
+    pbar = tqdm(range(args.end_batch))
     batch = 0
 
-    for inputs_id, mask, ll in pbar:
+    # for inputs_id, mask, ll in pbar:
+    for _ in pbar:
         total_loss = 0
         total_grad = 0
         total_score = 0
@@ -86,6 +88,7 @@ def main():
             
             sample_dicts = []
             scores = []
+            inputs_id, mask, ll = next(iter(dataloader)) 
             ## use input to sample data
             for idx, task in enumerate(meta_total):
                 for s in range(args.sample_time):
@@ -100,7 +103,8 @@ def main():
                     sample_acc_score = 0
                     random.shuffle(sample_dicts)
                     for flatten_dict in sample_dicts:
-
+                        
+                        
                         loss, score, _, _, _ = Agent.train_forward(inputs_id, mask, ll, flatten_dict, Prompt.train_device)
                         score['score'] /= (args.sample_time * len(meta_total))
                         loss /= (args.sample_time * len(meta_total))
@@ -115,6 +119,7 @@ def main():
 
                     Prompt.optimizer.step()
                     Prompt.optimizer.zero_grad()
+
                 
                 ## after k_epoch, update demo model 
                 Prompt.model_demo.load_state_dict(Prompt.model.state_dict())
@@ -129,6 +134,7 @@ def main():
                     Prompt.state_network.eval()
                     Prompt.model.eval()
                     for idx, task in enumerate(meta_total):
+                        
                         flatten_dict = Agent.sample_forward(inputs_id, mask, ll, task, \
                             Prompt.model, Prompt.state_network, Prompt.train_device)
 
@@ -151,17 +157,12 @@ def main():
                 tqdm.write(f"outerloss in batch {batch}: {round(total_loss/args.bz/len(meta_total), 4)}")
                 tqdm.write(f"outerscore in batch {batch}: {round(total_score/args.bz/len(meta_total), 4)}")
                 Agent.log_wandb(scores, total_loss, total_mse, total_pg, total_entropy, batch)
-                # wandb.log({'outerloss': total_loss / len(meta_total) , \
-                #     'outermse': total_mse / len(meta_total), \
-                #     'outerpg': total_pg / len(meta_total), \
-                #     'outerentropy': total_entropy / len(meta_total), \
-                #     'outerscore': total_score / args.bz / len(meta_total)}, step=batch)
             else:
                 total_scores = []
                 for flatten_dict in sample_dicts:
                     total_scores.append(flatten_dict)
                 
-                # Agent.log_wandb(total_scores, 0, 0, 0, 0, batch)
+                Agent.log_wandb(total_scores, 0, 0, 0, 0, batch)
 
             if batch % args.save_interval == 0:
                 
@@ -188,7 +189,7 @@ def main():
                                     '2: '+ sample_splits[1] + "; " + sample_bots[1])
                 else:
 
-                    if batch in [20, 500, 1000]:
+                    if batch in [20, 400, 1000, 2000]:
 
                         dest = f"results/{args.save_path}/"
                         os.makedirs(dest, exist_ok=True)
@@ -244,6 +245,8 @@ def set_arguments(parser):
     parser.add_argument("--iters", type=str, default=25)
     parser.add_argument("--tags", type=str, default=None)
     parser.add_argument('--init_step', type=str, default="")
+    parser.add_argument('--top_k', type=int, default=50)
+    parser.add_argument('--top_p', type=float, default=.9)
     # parser.add_argument('--extra_label', type=str, default='train_word_list.txt')
     parser.add_argument("--wandb", type=str, default='enabled')
     

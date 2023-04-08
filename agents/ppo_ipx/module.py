@@ -13,7 +13,7 @@ from transformers import TopPLogitsWarper, TopKLogitsWarper
 
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 class agent(nn.Module):
-    def __init__(self, config, prompt, bot):
+    def __init__(self, config, prompt, bot, ptx_dataloader):
         super().__init__()
 
         """
@@ -34,9 +34,13 @@ class agent(nn.Module):
         self.men_keys_to_idx = {}
         self.women_keys_to_idx = {}
         self.analyzer = SentimentIntensityAnalyzer()
-        self.top_p = TopPLogitsWarper(top_p=0.9)
-        self.top_k = TopKLogitsWarper(top_k=50)
-
+        self.top_k = config.top_k
+        self.top_p = config.top_p
+        self.top_p = TopPLogitsWarper(top_p=self.top_p)
+        self.top_k = TopKLogitsWarper(top_k=self.top_k)
+        self.pretrain_dataloader = ptx_dataloader
+        self.ptx_loss_fn = nn.CrossEntropyLoss(ignore_index=-100)
+        self.table = wandb.Table(columns=['step', 'prompt', 'prompt1', 'response1', 'prompt2', 'response2'])
         # if self.type == "emotion":
         #     self.emotion_task()
         #     self.classifier_tokenizer = BertTokenizer.from_pretrained("goemotion/ckpt/original/original/")
@@ -91,10 +95,10 @@ class agent(nn.Module):
     def sample_forward(self, inputs_id, mask, ll, task, model, state_net, device=torch.device('cuda:0')):
         
         ## only use the first word in the input sentence
-        prev_input = torch.LongTensor([[self.prompt.tokenizer.bos_token_id] * inputs_id.shape[0]]).squeeze(0).unsqueeze(1).to(device)
+        prev_input = torch.LongTensor([[self.prompt.tokenizer.bos_token_id] * self.args.bz]).squeeze(0).unsqueeze(1).to(device)
         # prev_input = inputs_id[:,0].unsqueeze(1).to(device)
         # mask = mask[:, 0].unsqueeze(1).to(device)
-        mask = torch.LongTensor([[1] * inputs_id.shape[0]]).squeeze(0).unsqueeze(1).to(device)
+        mask = torch.LongTensor([[1] * self.args.bz]).squeeze(0).unsqueeze(1).to(device)
         # The prompt sentence
         # Input: emotion task + input
         if not isinstance(model, str): ## if use model prompt
@@ -104,7 +108,7 @@ class agent(nn.Module):
             ## since we use gpt2, we don't use endoftext as prev_input
             ## prev_input = torch.LongTensor([self.prompt.tokenizer.encode('<|endoftext|>') for _ in range(inputs_id.shape[0])]).to(self.device)
             # The start of auto-regressive decoding of speaker 1 (chatbot)
-            batch_size = inputs_id.shape[0]
+            batch_size = self.args.bz
             append = torch.tensor([[1] for i in range(batch_size)]).to(device)
 
             temp_sen = [[] for i in range(batch_size)]
@@ -327,8 +331,8 @@ class agent(nn.Module):
         task = flatten_dict['task']
         r_mean, r_std = flatten_dict['r_mean'], flatten_dict['r_std']
         eos_index = flatten_dict['eos_index']
-        inputs_id = inputs_id.to(device)
-        batch_size = inputs_id.shape[0]
+        # inputs_id = inputs_id.to(device)
+        batch_size = self.args.bz
 
         mask = mask.to(device)
         # _, past, flatten_all, _ = self.prompt.prepare_input(task, inputs_id, mask, self.prompt.model)
@@ -347,12 +351,9 @@ class agent(nn.Module):
         prediction_list = []
         contrastive_list = [[] for _ in range(len(flatten_states[0]))]
         length_list = [1 for _ in range(len(flatten_states[0]))]
-        labels_id = deepcopy(inputs_id)
-        labels_id.masked_fill_(mask == 0, -100)
 
-        outputs = self.prompt.model(inputs_id, attention_mask=mask, labels=labels_id)
-        lm_loss = outputs['loss']
-        loss += lm_loss * self.args.lm_lr
+        
+
         for num in range(len(flatten_states)):
             flatten_states[num] = flatten_states[num].to(device)
             flatten_logprobs[num] = flatten_logprobs[num].to(device)
@@ -410,9 +411,29 @@ class agent(nn.Module):
         mse /= (outter_count + 1e-9)
         loss += pg_loss + mse
 
+
+        if self.args.lm_lr != 0: 
+            
+            inputs_id, mask, ll = next(iter(self.pretrain_dataloader))
+            inputs_id = inputs_id.to(device)
+            mask = mask.to(device)
+
+            ### ColossalAI
+            labels_id = deepcopy(inputs_id)
+            labels_id.masked_fill_(mask == 0, -100)
+            labels_id = labels_id[:, 1:]
+            # outputs = self.prompt.model(inputs_id, attention_mask=mask, labels=labels_id)
+            # lm_loss = outputs['loss']
+            ptx_log_probs = self.prompt.model(inputs_id, attention_mask=mask)['logits'][..., :-1, :]           
+            lm_loss = self.ptx_loss_fn(ptx_log_probs.reshape(-1, ptx_log_probs.size(-1)), labels_id.reshape(-1))
+            loss = lm_loss * self.args.lm_lr  + (1- self.args.lm_lr) * loss
+
         flatten_dict["contrastive"] = contrastive_list
         flatten_dict["length"] = length_list
-        flatten_dict['lm_loss'] = lm_loss.item()
+        if self.args.lm_lr != 0:
+            flatten_dict['lm_loss'] = lm_loss.item()
+        else:
+            flatten_dict['lm_loss'] = 0
 
         return loss, flatten_dict, mse.item(), pg_loss.item(), entropy
 
@@ -453,7 +474,7 @@ class agent(nn.Module):
             tmp_1, tmp_2, gen = self.replace_sentence(sentences[j])
             
             if gen == False:
-                score.append(0.0)
+                score.append(0.0) ## more penalty
                 re_sen.append([tmp_1, tmp_1])
                 re_res.append(['none', 'none'])
             else:
@@ -557,3 +578,4 @@ class agent(nn.Module):
                 columns=self.table.columns, data=self.table.data
             )
             wandb.log({"conversation": new_table})
+            

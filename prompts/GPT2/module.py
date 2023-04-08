@@ -13,7 +13,7 @@ class prompt(base):
         self.model = DialogueGPT(config)
         """
         self.args = config
-        self.device = config.device
+        self.device = self.train_device = self.demo_device = config.device
         self.configuration = GPT2Config.from_pretrained('gpt2-medium')
         self.tokenizer = GPT2Tokenizer.from_pretrained('gpt2-medium')  
         self.tokenizer.pad_token = self.tokenizer.eos_token
