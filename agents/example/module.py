@@ -8,6 +8,8 @@ import torch.nn.functional as F
 import numpy as np
 import re
 import wandb
+from transformers import TopPLogitsWarper, TopKLogitsWarper
+
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 class agent(nn.Module):
     def __init__(self, config, prompt, bot):
@@ -30,6 +32,8 @@ class agent(nn.Module):
         self.men_keys_to_idx = {}
         self.women_keys_to_idx = {}
         self.analyzer = SentimentIntensityAnalyzer()
+        self.top_p = TopPLogitsWarper(top_p=0.9)
+        self.top_k = TopKLogitsWarper(top_k=50)
 
         # if self.type == "emotion":
         #     self.emotion_task()
@@ -112,7 +116,7 @@ class agent(nn.Module):
             old_logprobs = []
             old_mask = []
             old_actions = []
-            temperature = 1
+            temperature = 0.7
             # mask = torch.cat((mask, append), 1)
             position_ids = mask.long().cumsum(-1) - 1
             position_ids.masked_fill_(mask == 0, 1)
@@ -137,11 +141,11 @@ class agent(nn.Module):
                     position_ids = position_ids[:, -1].unsqueeze(-1).to(self.device)
                     logits = logits.squeeze(0).squeeze(1)
                     soft_logits = logits / temperature
-                    
-                    probs = torch.softmax(soft_logits,dim=-1)
-                    
-                    dist = Categorical(probs) 
-                    prev_input = dist.sample()[:,None]
+                    probs = torch.softmax(soft_logits, dim=-1)
+                    top_p_top_k_probs = torch.softmax(self.top_p(i, self.top_k(i, soft_logits)), dim=-1)
+                    dist = Categorical(probs)
+                    dist2 = Categorical(top_p_top_k_probs) 
+                    prev_input = dist2.sample()[:, None]
                     old_actions.append(prev_input.detach().cpu())
                     old_logprobs.append(dist.log_prob(prev_input.squeeze()).detach().cpu())
 

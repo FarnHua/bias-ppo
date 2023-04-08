@@ -15,14 +15,17 @@ class dataset(Dataset) :
         tmp_mask = []
         self.ll = []
         dic = {}
-        for sen in data['dialog'] :
-            tmp = tokenizer.encode(sen[0] + "<|endoftext|>")
-            if tmp[0] in dic: continue
-            dic[tmp[0]] = 1
-            
-            tmp_token.append(tmp)
-            tmp_mask.append([1 for i in range(len(tmp))])
-            self.ll.append(len(tmp))
+        print(len(data['dialog']))
+        for dia in data['dialog'] :
+            for sen in dia:
+                #print(sen)
+                tmp = tokenizer.encode(sen + "<|endoftext|>")
+                if tmp[0] in dic: continue
+                dic[tmp[0]] = 1
+                
+                tmp_token.append(tmp)
+                tmp_mask.append([1 for i in range(len(tmp))])
+                self.ll.append(len(tmp))
 
         
         self.token = pad_sequence([torch.LongTensor(x) for x in tmp_token], batch_first=True, padding_value=0)

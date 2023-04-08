@@ -105,8 +105,8 @@ def main():
                         score['score'] /= (args.sample_time * len(meta_total))
                         loss /= (args.sample_time * len(meta_total))
                         loss.backward()
-                        torch.nn.utils.clip_grad_norm_(Prompt.model.parameters(), 1.0)
-                        torch.nn.utils.clip_grad_norm_(Prompt.state_network.parameters(), 1.0)
+                        # torch.nn.utils.clip_grad_norm_(Prompt.model.parameters(), 1.0)
+                        # torch.nn.utils.clip_grad_norm_(Prompt.state_network.parameters(), 1.0)
 
                         sample_acc_loss += loss
                         sample_acc_score += score['score']
@@ -169,7 +169,7 @@ def main():
 
                     dest = f"results/{args.save_path}/"
                     os.makedirs(dest, exist_ok=True)
-                    with open(f'results/{args.save_path}/checkpoint-step-{batch}-output.txt', 'w') as f:
+                    with open(f'results/{args.save_path}/checkpoint-output.txt', 'a') as f:
                         for flatten_dict in sample_dicts:
                             bot_response=flatten_dict['conversation']
                             prompt=flatten_dict['model_response']
@@ -188,7 +188,7 @@ def main():
                                     '2: '+ sample_splits[1] + "; " + sample_bots[1])
                 else:
 
-                    if batch in [50, 500]:
+                    if batch in [50, 296, 500]:
 
                         dest = f"results/{args.save_path}/"
                         os.makedirs(dest, exist_ok=True)
@@ -239,7 +239,7 @@ def set_arguments(parser):
     parser.add_argument("--bot", type=str, default="example")
     parser.add_argument("--prompt", type=str, default="GPT2")
     parser.add_argument("--dataset", type=str, default="Daily") # for finetune task
-    parser.add_argument("--path", type=str, default="./data/daily_train_key.json", help="path for dataset")
+    parser.add_argument("--path", type=str, default="./data/daily_train.json", help="path for dataset")
     parser.add_argument("--mode", type=str, default="test", help="The current option is [ 'pretrain', 'finetune', 'test' ]")
     parser.add_argument("--type", type=str, default=None, help="The current option is [ 'word', 'emotion' ]")
     parser.add_argument("--exp_name", type=str, default="")

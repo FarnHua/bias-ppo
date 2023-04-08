@@ -20,9 +20,10 @@ class prompt(base):
         self.model = GPT2LMHeadModel.from_pretrained('gpt2-medium')
         self.model_demo = GPT2LMHeadModel.from_pretrained('gpt2-medium')
         self.state_network = nn.Sequential(nn.Dropout(0.1), nn.Linear(1024, 1))
-        self.state_network_demo = nn.Sequential(nn.Dropout(0.1), nn.Linear(1024,1))
-        self.model.load_state_dict(torch.load('./gpt2_finetune/gpt2-medium-4.pt'))
-        self.model_demo.load_state_dict(torch.load('./gpt2_finetune/gpt2-medium-4.pt'))
+        self.state_network_demo = nn.Sequential(nn.Dropout(0.1), nn.Linear(1024, 1))
+        # self.model.load_state_dict(torch.load('./gpt2_finetune/gpt2-medium-4.pt'))
+        # self.model_demo.load_state_dict(torch.load('./gpt2_finetune/gpt2-medium-4.pt'))
+        
         ## can use a finetuned DialogueGPT
         if config.model != 'gpt2-medium':
             print(f"[Load LM from saved point]: the original path: results/{config.model}/checkpoint-step-{self.args.init_step}-prompt.pkl")

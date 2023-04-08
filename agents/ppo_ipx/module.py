@@ -146,7 +146,7 @@ class agent(nn.Module):
                     top_p_top_k_probs = torch.softmax(self.top_p(i, self.top_k(i, soft_logits)), dim=-1)
                     dist = Categorical(probs)
                     dist2 = Categorical(top_p_top_k_probs) 
-                    prev_input = dist2.sample()[:, None]
+                    prev_input = dist.sample()[:, None]
                     old_actions.append(prev_input.detach().cpu())
                     old_logprobs.append(dist.log_prob(prev_input.squeeze()).detach().cpu())
 
@@ -523,7 +523,7 @@ class agent(nn.Module):
         lm_loss = 0
         for score in flatten_dicts:
             training_score += score['score']
-            lm_loss += score['lm_loss']
+            lm_loss += score.get('lm_loss', 0)
         wandb.log({'outerloss': total_loss / meta_total , \
                     'outermse': total_mse / meta_total, \
                     'outerpg': total_pg / meta_total, \

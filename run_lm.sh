@@ -23,7 +23,7 @@
 ## number of tasks per node
 #SBATCH --ntasks-per-node=1
 
-#SBATCH --array=1-4
+#SBATCH --array=1
 ##SBATCH -e /checkpoints/hsuansu/slurm/slurm-%j.err
 ##SBATCH -o /checkpoints/hsuansu/slurm/slurm-%j.out
 ### Section 2: Setting environment variables for the job
@@ -39,18 +39,18 @@ ml miniconda3 cuda/11.7 gcc8/8.3.1
 conda info --envs
 conda activate ppo
 
-lr=("5e-6" "5e-6" "5e-6" "5e-6")
-lm_lr=("10" "0.1" "1" "5")
+lr=("5e-6")
+lm_lr=("1")
 for i in 1e-5
 do
     CUDA_VISIBLE_DEVICES=0 python main.py \
-                        --mode test \
+                        --mode finetune \
                         --prompt GPT2 \
                         --agent ppo_ipx \
-			--model results/bias-ppo2-inlr${lr[$SLURM_ARRAY_TASK_ID-1]}-${lm_lr[$SLURM_ARRAY_TASK_ID-1]}-blender_medium_ppo_ipx \
+			--model gpt2-medium\
                         --bot blenderbot \
                         --type bias \
-                        --exp_name bias-ppo2-inlr${lr[$SLURM_ARRAY_TASK_ID-1]}-${lm_lr[$SLURM_ARRAY_TASK_ID-1]}-blender_medium_ppo_ipx \
+                        --exp_name bias-ppo2-inlr${lr[$SLURM_ARRAY_TASK_ID-1]}-${lm_lr[$SLURM_ARRAY_TASK_ID-1]}-blender_medium_ppo_ipx_lm_only1 \
                         --log_interval 25 \
                         --seed 1 \
                         --bz 8 \
@@ -61,9 +61,9 @@ do
                         --max_pt_len 10 \
                         --tags inner-lr \
 			--inner_lr ${lr[$SLURM_ARRAY_TASK_ID-1]}\
-                        --init_step 296 \
-                        --save_path bias-ppo2-inlr${lr[$SLURM_ARRAY_TASK_ID-1]}-${lm_lr[$SLURM_ARRAY_TASK_ID-1]}-blender_medium_ppo_ipx \
-                        --save_interval 1 \
+                        --init_step 2 \
+                        --save_path bias-ppo2-inlr${lr[$SLURM_ARRAY_TASK_ID-1]}-${lm_lr[$SLURM_ARRAY_TASK_ID-1]}-blender_medium_ppo_ipx_lm_only1 \
+                        --save_interval 296 \
                         --ep_lr 1.0 \
                         --lm_lr ${lm_lr[$SLURM_ARRAY_TASK_ID-1]} \
                         --wandb online
