@@ -13,13 +13,22 @@ from transformers import TopPLogitsWarper, TopKLogitsWarper
 
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 class agent(nn.Module):
+<<<<<<< HEAD
     def __init__(self, config, prompt, bot):
+=======
+    def __init__(self, config, prompt, bot, ptx_dataloader):
+>>>>>>> a4a636b4021d97ca2558b243f19fa8de13265ea8
         super().__init__()
 
         """
         """
         self.args = config
+<<<<<<< HEAD
         self.device = config.device
+=======
+        device = prompt.device
+        self.bot_device = bot.device
+>>>>>>> a4a636b4021d97ca2558b243f19fa8de13265ea8
         self.mode = config.mode
         self.prompt = prompt
         self.bot = bot
@@ -33,9 +42,19 @@ class agent(nn.Module):
         self.men_keys_to_idx = {}
         self.women_keys_to_idx = {}
         self.analyzer = SentimentIntensityAnalyzer()
+<<<<<<< HEAD
         self.top_p = TopPLogitsWarper(top_p=0.9)
         self.top_k = TopKLogitsWarper(top_k=50)
 
+=======
+        self.top_k = config.top_k
+        self.top_p = config.top_p
+        self.top_p = TopPLogitsWarper(top_p=self.top_p)
+        self.top_k = TopKLogitsWarper(top_k=self.top_k)
+        self.pretrain_dataloader = ptx_dataloader
+        self.ptx_loss_fn = nn.CrossEntropyLoss(ignore_index=-100)
+        self.table = wandb.Table(columns=['step', 'prompt', 'prompt1', 'response1', 'prompt2', 'response2'])
+>>>>>>> a4a636b4021d97ca2558b243f19fa8de13265ea8
         # if self.type == "emotion":
         #     self.emotion_task()
         #     self.classifier_tokenizer = BertTokenizer.from_pretrained("goemotion/ckpt/original/original/")
@@ -87,12 +106,22 @@ class agent(nn.Module):
                 idx += 1
         
 
+<<<<<<< HEAD
     def sample_forward(self, inputs_id, mask, ll, task, model, state_net, word_dict=None):
         
         ## only use the first word in the input sentence
         prev_input = inputs_id[:,0].unsqueeze(1).to(self.device)
         mask = mask[:, 0].unsqueeze(1).to(self.device)
         
+=======
+    def sample_forward(self, inputs_id, mask, ll, task, model, state_net, device=torch.device('cuda:0')):
+        
+        ## only use the first word in the input sentence
+        prev_input = torch.LongTensor([[self.prompt.tokenizer.bos_token_id] * self.args.bz]).squeeze(0).unsqueeze(1).to(device)
+        # prev_input = inputs_id[:,0].unsqueeze(1).to(device)
+        # mask = mask[:, 0].unsqueeze(1).to(device)
+        mask = torch.LongTensor([[1] * self.args.bz]).squeeze(0).unsqueeze(1).to(device)
+>>>>>>> a4a636b4021d97ca2558b243f19fa8de13265ea8
         # The prompt sentence
         # Input: emotion task + input
         if not isinstance(model, str): ## if use model prompt
@@ -102,6 +131,7 @@ class agent(nn.Module):
             ## since we use gpt2, we don't use endoftext as prev_input
             ## prev_input = torch.LongTensor([self.prompt.tokenizer.encode('<|endoftext|>') for _ in range(inputs_id.shape[0])]).to(self.device)
             # The start of auto-regressive decoding of speaker 1 (chatbot)
+<<<<<<< HEAD
             batch_size = inputs_id.shape[0]
             append = torch.tensor([[1] for i in range(batch_size)]).to(self.device)
 
@@ -109,6 +139,15 @@ class agent(nn.Module):
             ## put the first word into temp_sen
             for i in range(len(prev_input)):
                 temp_sen[i].extend(prev_input[i])
+=======
+            batch_size = self.args.bz
+            append = torch.tensor([[1] for i in range(batch_size)]).to(device)
+
+            temp_sen = [[] for i in range(batch_size)]
+            ## put the first word into temp_sen
+            # for i in range(len(prev_input)):
+            #     temp_sen[i].extend(prev_input[i])
+>>>>>>> a4a636b4021d97ca2558b243f19fa8de13265ea8
 
             ## states: prev_input
             ## action: next token 
@@ -117,18 +156,30 @@ class agent(nn.Module):
             old_logprobs = []
             old_mask = []
             old_actions = []
+<<<<<<< HEAD
             temperature = 0.7
             # mask = torch.cat((mask, append), 1)
             position_ids = mask.long().cumsum(-1) - 1
             position_ids.masked_fill_(mask == 0, 1)
             position_ids = position_ids[:, -1].unsqueeze(-1).to(self.device)
+=======
+            temperature = 1.2
+            # mask = torch.cat((mask, append), 1)
+            position_ids = mask.long().cumsum(-1) - 1
+            position_ids.masked_fill_(mask == 0, 1)
+            position_ids = position_ids[:, -1].unsqueeze(-1).to(device)
+>>>>>>> a4a636b4021d97ca2558b243f19fa8de13265ea8
             eos_index = [0]*batch_size
             past = None
 
             with torch.no_grad():
                 for i in range(self.args.max_pt_len):
 
+<<<<<<< HEAD
                     prev_input = prev_input.to(self.device)
+=======
+                    prev_input = prev_input.to(device)
+>>>>>>> a4a636b4021d97ca2558b243f19fa8de13265ea8
                     old_mask.append(mask.detach().cpu())
                     old_states.append(prev_input.detach().cpu())
                     temp_past = past
@@ -139,7 +190,11 @@ class agent(nn.Module):
                     mask = torch.cat((mask, append), 1)
                     position_ids = mask.long().cumsum(-1) - 1
                     position_ids.masked_fill_(mask == 0, 1)
+<<<<<<< HEAD
                     position_ids = position_ids[:, -1].unsqueeze(-1).to(self.device)
+=======
+                    position_ids = position_ids[:, -1].unsqueeze(-1).to(device)
+>>>>>>> a4a636b4021d97ca2558b243f19fa8de13265ea8
                     logits = logits.squeeze(0).squeeze(1)
                     soft_logits = logits / temperature
                     probs = torch.softmax(soft_logits, dim=-1)
@@ -156,14 +211,26 @@ class agent(nn.Module):
                 
             ##########################################################################################
             eos_index = [len(temp_sen[0]) for j in range(len(temp_sen))]
+<<<<<<< HEAD
+=======
+            
+>>>>>>> a4a636b4021d97ca2558b243f19fa8de13265ea8
             dialoggpt_end_index = 50256
             for j in range(len(temp_sen)):
                 if dialoggpt_end_index in temp_sen[j]:
                     eos_index[j] = temp_sen[j].index(dialoggpt_end_index)
                     temp_sen[j] = temp_sen[j][:eos_index[j]]
 
+<<<<<<< HEAD
             model_response = [self.prompt.tokenizer.decode(x).split('<|endoftext|>')[0] for x in temp_sen]
             first_input = list(inputs_id.cpu().detach().numpy())
+=======
+            
+            
+            model_response = [self.prompt.tokenizer.decode(x, skip_special_tokens=True) for x in temp_sen]
+            first_input = list(inputs_id.cpu().detach().numpy())
+            
+>>>>>>> a4a636b4021d97ca2558b243f19fa8de13265ea8
             # model_response_input_ids = [np.array(x) for x in temp_sen]
 
             for j in range(batch_size):
@@ -172,7 +239,12 @@ class agent(nn.Module):
 
             bot_response = []
             first_input_string = [self.prompt.tokenizer.decode(x) for x in first_input]
+<<<<<<< HEAD
         
+=======
+
+            
+>>>>>>> a4a636b4021d97ca2558b243f19fa8de13265ea8
         else:
             old_states = []
             old_logprobs = []
@@ -310,7 +382,11 @@ class agent(nn.Module):
 
         return flatten_dict
 
+<<<<<<< HEAD
     def train_forward(self, inputs_id, mask, ll, flatten_dict):
+=======
+    def train_forward(self, inputs_id, mask, ll, flatten_dict, device=torch.device('cuda:0')):
+>>>>>>> a4a636b4021d97ca2558b243f19fa8de13265ea8
         
         flatten_states = flatten_dict['flatten_states']
         flatten_logprobs = flatten_dict['flatten_logprobs']
@@ -320,10 +396,17 @@ class agent(nn.Module):
         task = flatten_dict['task']
         r_mean, r_std = flatten_dict['r_mean'], flatten_dict['r_std']
         eos_index = flatten_dict['eos_index']
+<<<<<<< HEAD
         inputs_id = inputs_id.to(self.device)
         batch_size = inputs_id.shape[0]
 
         mask = mask.to(self.device)
+=======
+        # inputs_id = inputs_id.to(device)
+        batch_size = self.args.bz
+
+        mask = mask.to(device)
+>>>>>>> a4a636b4021d97ca2558b243f19fa8de13265ea8
         # _, past, flatten_all, _ = self.prompt.prepare_input(task, inputs_id, mask, self.prompt.model)
         past = None
         eps_clip = 0.2
@@ -340,6 +423,7 @@ class agent(nn.Module):
         prediction_list = []
         contrastive_list = [[] for _ in range(len(flatten_states[0]))]
         length_list = [1 for _ in range(len(flatten_states[0]))]
+<<<<<<< HEAD
         labels_id = deepcopy(inputs_id)
         labels_id.masked_fill_(mask == 0, -100)
 
@@ -358,6 +442,25 @@ class agent(nn.Module):
             output = self.prompt.model(flatten_states[num], past_key_values=temp_past, attention_mask=flatten_mask[num], position_ids=position_ids)
             logits, past = output['logits'], output['past_key_values']
             hidden_states = self.prompt.model.transformer(flatten_states[num],past_key_values=temp_past, attention_mask=flatten_mask[num], position_ids=position_ids)[0]
+=======
+
+        
+
+        for num in range(len(flatten_states)):
+            flatten_states[num] = flatten_states[num].to(device)
+            flatten_logprobs[num] = flatten_logprobs[num].to(device)
+            flatten_actions[num] = flatten_actions[num].to(device)
+            flatten_mask[num] = flatten_mask[num].to(device)
+            position_ids = flatten_mask[num].long().cumsum(-1) - 1
+            position_ids.masked_fill_(flatten_mask[num] == 0, 1)
+            position_ids = position_ids[:, -1].unsqueeze(-1).to(device)
+            temp_past = past
+            output = self.prompt.model(flatten_states[num], past_key_values=temp_past, attention_mask=flatten_mask[num], position_ids=position_ids)
+            logits, past = output['logits'], output['past_key_values']
+            
+            
+            hidden_states = self.prompt.model.transformer(flatten_states[num],past_key_values=temp_past, attention_mask=flatten_mask[num], position_ids=position_ids)[0]      
+>>>>>>> a4a636b4021d97ca2558b243f19fa8de13265ea8
             hidden = self.prompt.state_network(hidden_states)
             prediction_list.append(hidden)
             logits_list.append(logits)
@@ -366,7 +469,11 @@ class agent(nn.Module):
         for num in range(len(flatten_states)):
             prediction = prediction_list[num]
             actionprobs = F.softmax(logits_list[num],dim=-1)
+<<<<<<< HEAD
             rewards_tensor = torch.tensor(flatten_rewards[num]).to(self.device)
+=======
+            rewards_tensor = torch.tensor(flatten_rewards[num]).to(device)
+>>>>>>> a4a636b4021d97ca2558b243f19fa8de13265ea8
             rewards_norm = (rewards_tensor - r_mean) / (r_std + 1e-9) + r_mean
 
             dist = Categorical(actionprobs)
@@ -401,9 +508,35 @@ class agent(nn.Module):
         mse /= (outter_count + 1e-9)
         loss += pg_loss + mse
 
+<<<<<<< HEAD
         flatten_dict["contrastive"] = contrastive_list
         flatten_dict["length"] = length_list
         flatten_dict['lm_loss'] = lm_loss.item()
+=======
+
+        if self.args.lm_lr != 0: 
+            
+            inputs_id, mask, ll = next(iter(self.pretrain_dataloader))
+            inputs_id = inputs_id.to(device)
+            mask = mask.to(device)
+
+            ### ColossalAI
+            labels_id = deepcopy(inputs_id)
+            labels_id.masked_fill_(mask == 0, -100)
+            labels_id = labels_id[:, 1:]
+            # outputs = self.prompt.model(inputs_id, attention_mask=mask, labels=labels_id)
+            # lm_loss = outputs['loss']
+            ptx_log_probs = self.prompt.model(inputs_id, attention_mask=mask)['logits'][..., :-1, :]           
+            lm_loss = self.ptx_loss_fn(ptx_log_probs.reshape(-1, ptx_log_probs.size(-1)), labels_id.reshape(-1))
+            loss = lm_loss * self.args.lm_lr  + (1- self.args.lm_lr) * loss
+
+        flatten_dict["contrastive"] = contrastive_list
+        flatten_dict["length"] = length_list
+        if self.args.lm_lr != 0:
+            flatten_dict['lm_loss'] = lm_loss.item()
+        else:
+            flatten_dict['lm_loss'] = 0
+>>>>>>> a4a636b4021d97ca2558b243f19fa8de13265ea8
 
         return loss, flatten_dict, mse.item(), pg_loss.item(), entropy
 
@@ -444,13 +577,18 @@ class agent(nn.Module):
             tmp_1, tmp_2, gen = self.replace_sentence(sentences[j])
             
             if gen == False:
+<<<<<<< HEAD
                 score.append(0.0)
+=======
+                score.append(0.0) ## more penalty
+>>>>>>> a4a636b4021d97ca2558b243f19fa8de13265ea8
                 re_sen.append([tmp_1, tmp_1])
                 re_res.append(['none', 'none'])
             else:
                 responses = self.bot.make_response([tmp_1, tmp_2])
                 vs_1 = self.analyzer.polarity_scores(responses[0])
                 vs_2 = self.analyzer.polarity_scores(responses[1])
+<<<<<<< HEAD
                 
                 # score[j] += abs(vs_1['compound'] - vs_2['compound'])
                 # print(responses[0])
@@ -458,6 +596,8 @@ class agent(nn.Module):
                 # print(vs_1)
                 # print(vs_2)
                 # print(abs(vs_1['compound'] - vs_2['compound']))
+=======
+>>>>>>> a4a636b4021d97ca2558b243f19fa8de13265ea8
                 score.append(abs(vs_1['compound'] - vs_2['compound']))
                 re_sen.append([tmp_1, tmp_2])
                 re_res.append([responses[0][0], responses[1][0]])
@@ -521,9 +661,18 @@ class agent(nn.Module):
         coherence_score = 0
         control_score = 0
         lm_loss = 0
+<<<<<<< HEAD
         for score in flatten_dicts:
             training_score += score['score']
             lm_loss += score['lm_loss']
+=======
+        
+
+        for score in flatten_dicts:
+            training_score += score['score']
+            lm_loss += score['lm_loss']
+
+>>>>>>> a4a636b4021d97ca2558b243f19fa8de13265ea8
         wandb.log({'outerloss': total_loss / meta_total , \
                     'outermse': total_mse / meta_total, \
                     'outerpg': total_pg / meta_total, \
@@ -532,4 +681,28 @@ class agent(nn.Module):
                     'lm_loss': lm_loss / meta_total}, \
                  #   'controllable_score':control_score / self.args.bz / meta_total, \
                  #   'coherence_score': coherence_score / self.args.bz / meta_total} \ 
+<<<<<<< HEAD
                     step=batch)
+=======
+                    step=batch)
+        if batch % 20 == 1:
+            for flatten_dict in flatten_dicts:
+                bot_response=flatten_dict['conversation']
+                prompt=flatten_dict['model_response']
+                input_sentence=flatten_dict['input_string']
+                for i in range(len(bot_response)):
+                    sample_splits = bot_response[i][0]
+                    sample_bots = bot_response[i][1]
+                    sample_prompt = prompt[i]
+                    self.table.add_data(batch, sample_prompt, sample_splits[0], sample_bots[0], sample_splits[1], sample_bots[1])
+                    # f.write(sample_prompt + ". 1: " + sample_splits[0] + "; " + sample_bots[0] + \
+                    #     '2: '+ sample_splits[1] + "; " + sample_bots[1] + '\n')   
+                    # print(sample_prompt + ". 1: " + sample_splits[0] + "; " + sample_bots[0] + \
+                    #     '2: '+ sample_splits[1] + "; " + sample_bots[1])
+            
+            new_table = wandb.Table(
+                columns=self.table.columns, data=self.table.data
+            )
+            wandb.log({"conversation": new_table})
+            
+>>>>>>> a4a636b4021d97ca2558b243f19fa8de13265ea8

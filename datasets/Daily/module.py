@@ -20,6 +20,7 @@ class dataset(Dataset) :
             if tmp[0] in dic: continue
             dic[tmp[0]] = 1
             
+            
             tmp_token.append(tmp)
             tmp_mask.append([1 for i in range(len(tmp))])
             self.ll.append(len(tmp))
