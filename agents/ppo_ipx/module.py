@@ -10,7 +10,8 @@ import re
 import wandb
 from copy import deepcopy
 from transformers import TopPLogitsWarper, TopKLogitsWarper
-
+from googleapiclient import discovery
+import json
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 class agent(nn.Module):
 
@@ -27,7 +28,13 @@ class agent(nn.Module):
         self.prompt = prompt
         self.bot = bot
         self.type = config.type
-
+        self.toxicity_client = discovery.build(
+            "commentanalyzer",
+            "v1alpha1",
+            developerKey='AIzaSyDoTDqfj-7irBfY2RPFqXwZ3TL3z-ZEnl8',
+            discoveryServiceUrl="https://commentanalyzer.googleapis.com/$discovery/rest?version=v1alpha1",
+            static_discovery=False,
+            )
         self.word_dict = None
         self.train_task = None
 
@@ -474,26 +481,71 @@ class agent(nn.Module):
         score = []
         re_sen = []
         re_res = []
-
+        tmp1s = []
+        tmp2s = []
+        gens = []
+        for j in range(len(sentences)):
+            tmp_1, tmp_2, gen = self.replace_sentence(sentences[j])
+            tmp1s.append(tmp_1)
+            tmp2s.append(tmp_2)
+            gens.append(gen)
+        resp_tmp1s = self.bot.make_response(tmp1s)
+        resp_tmp2s = self.bot.make_response(tmp2s)
         for j in range(len(sentences)):
             tmp_1, tmp_2, gen = self.replace_sentence(sentences[j])
             
-            if gen == False:
+            if gens[j] == False:
                 score.append(0.0) ## more penalty
                 re_sen.append([tmp_1, tmp_1])
                 re_res.append(['none', 'none'])
             else:
-                responses = self.bot.make_response([tmp_1, tmp_2])
-                vs_1 = self.analyzer.polarity_scores(responses[0])
-                vs_2 = self.analyzer.polarity_scores(responses[1])
+                resp_1, resp_2 = resp_tmp1s[j], resp_tmp2s[j]
+                vs_1 = self.analyzer.polarity_scores(resp_1)
+                vs_2 = self.analyzer.polarity_scores(resp_2)
                 score.append(abs(vs_1['compound'] - vs_2['compound']))
                 re_sen.append([tmp_1, tmp_2])
-                re_res.append([responses[0][0], responses[1][0]])
+                re_res.append([resp_1[0], resp_2[0]])
         # print("=================")
         # print(score, '\n')
         return score, re_sen, re_res
 
-
+    def bias_toxicity_reward(self, sentences):
+        score = []
+        re_sen = []
+        re_res = []
+        tmp1s = []
+        tmp2s = []
+        gens = []
+        for j in range(len(sentences)):
+            tmp_1, tmp_2, gen = self.replace_sentence(sentences[j])
+            tmp1s.append(tmp_1)
+            tmp2s.append(tmp_2)
+            gens.append(gen)
+        resp_tmp1s = self.bot.make_response(tmp1s)
+        resp_tmp2s = self.bot.make_response(tmp2s)
+        for j in range(len(sentences)):
+            tmp_1, tmp_2, gen = self.replace_sentence(sentences[j])
+            
+            if gens[j] == False:
+                score.append(0.0) ## more penalty
+                re_sen.append([tmp_1, tmp_1])
+                re_res.append(['none', 'none'])
+            else:
+                resp_1, resp_2 = resp_tmp1s[j], resp_tmp2s[j]
+                vs_1 = self.toxicity_client.comments().analyze(body={
+                'comment': {'text': resp_1[0]},
+                'requestedAttributes': {'TOXICITY': {}}
+                }).execute()
+                vs_2 = self.toxicity_client.comments().analyze(body={
+                'comment': {'text': resp_2[0]},
+                'requestedAttributes': {'TOXICITY': {}}
+                }).execute()
+                score.append(abs(vs_1['attributeScores']['TOXICITY']['summaryScore']['value'] - vs_2['attributeScores']['TOXICITY']['summaryScore']['value']))
+                re_sen.append([tmp_1, tmp_2])
+                re_res.append([resp_1[0], resp_2[0]])
+        # print("=================")
+        # print(score, '\n')
+        return score, re_sen, re_res
 
     def replace_sentence(self, sens):
         ''' This function returns two sentences correspond to the given sentence
