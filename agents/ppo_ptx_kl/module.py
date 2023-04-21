@@ -27,6 +27,7 @@ class agent(nn.Module):
         self.bot_device = bot.device
         self.mode = config.mode
         self.prompt = prompt
+        self.kl_model = deepcopy(prompt.model)
         self.bot = bot
         self.type = config.type
         self.toxicity_client = discovery.build(
@@ -151,9 +152,9 @@ class agent(nn.Module):
                     old_mask.append(mask.detach().cpu())
                     old_states.append(prev_input.detach().cpu())
                     temp_past = past
+                    
                     output = model(prev_input, past_key_values=temp_past, attention_mask=mask, position_ids=position_ids)
                     logits, past = output['logits'], output['past_key_values']
-
                     # prev_input = prev_input.to(self.device)   
                     mask = torch.cat((mask, append), 1)
                     position_ids = mask.long().cumsum(-1) - 1
@@ -162,16 +163,21 @@ class agent(nn.Module):
                     logits = logits.squeeze(0).squeeze(1)
                     soft_logits = logits / temperature
                     probs = torch.softmax(soft_logits, dim=-1)
+                  #  kl_probs = torch.softmax(kl_logits, dim=-1)
                     top_p_top_k_probs = torch.softmax(self.top_p(i, self.top_k(i, soft_logits)), dim=-1)
                     dist = Categorical(probs)
                     dist2 = Categorical(top_p_top_k_probs) 
+                   # kl_dist = Categorical(kl_probs)
                     prev_input = dist.sample()[:, None]
                     old_actions.append(prev_input.detach().cpu())
                     old_logprobs.append(dist.log_prob(prev_input.squeeze()).detach().cpu())
-
+                    # print('origin', dist.log_prob(prev_input.squeeze()).detach().cpu())
+                    # print('kl', kl_dist.log_prob(prev_input.squeeze()).detach().cpu())
+                    # print(dist.log_prob(prev_input.squeeze()).detach().cpu() - kl_dist.log_prob(prev_input.squeeze()).detach().cpu())
                     for j in range(batch_size):
-                        origin_index = j%batch_size
+                        origin_index = j % batch_size
                         temp_sen[j].append(prev_input[origin_index].item())
+                    #    kl_reward[j].append((dist.log_prob(prev_input.squeeze()).detach().cpu() - kl_dist.log_prob(prev_input.squeeze()).detach().cpu())[j])
                 
             ##########################################################################################
             eos_index = [len(temp_sen[0]) for j in range(len(temp_sen))]
@@ -181,6 +187,7 @@ class agent(nn.Module):
                 if dialoggpt_end_index in temp_sen[j]:
                     eos_index[j] = temp_sen[j].index(dialoggpt_end_index)
                     temp_sen[j] = temp_sen[j][:eos_index[j]]
+                    #kl_reward[j] = kl_reward[j][:eos_index[j]]
 
             
             
@@ -237,7 +244,7 @@ class agent(nn.Module):
         # else:
         #     raise
 
-        predict_list, re_sen, re_res = self.bias_toxicity_reward(model_response)
+        predict_list, re_sen, re_res = self.bias_reward(model_response)
         for j in range(batch_size):
             conversation.append([re_sen[j], re_res[j]])
         # import pdb
@@ -269,41 +276,45 @@ class agent(nn.Module):
                 score += s
 
                 tempscore.append(s)
+        score_emo = np.array(tempscore)
+        # batchwise_pt_len_rewards= []
+        # reward_collect = []
+        # r_mean = 0
+        # r_std = 0
 
-        batchwise_pt_len_rewards= []
-        reward_collect = []
-        r_mean = 0
-        r_std = 0
+        # if not isinstance(model, str):
+        #     step +=1
+        #     score_emo = np.array(tempscore)
+        #     rewards = [[] for i in range(batch_size)]
 
-        if not isinstance(model, str):
-            step +=1
-            score_emo = np.array(tempscore)
-            rewards = [[] for i in range(batch_size)]
+        #     for i in range(batch_size):
+        #         reward = score_emo[i]
+        #         num = self.args.max_pt_len if eos_index[i] >= self.args.max_pt_len else eos_index[i] 
 
-            for i in range(batch_size):
-                reward = score_emo[i]
-                num = self.args.max_pt_len if eos_index[i] >= self.args.max_pt_len else eos_index[i] 
-                discount_reward = 0
-                for j in range(num):
-                    if j == 0:
-                        discount_reward = reward + self.args.discount_r * discount_reward
-                    else:
-                        discount_reward = self.args.discount_r * discount_reward
-                    rewards[i].append(discount_reward)
-                    reward_collect.append(discount_reward)
-                rewards[i].reverse()
-                while len(rewards[i]) < self.args.max_pt_len:
-                    rewards[i].append(0)
+        #         discount_reward = 0
+        #         for j in range(num):
+        #             if j == 0:
+        #                 discount_reward = reward + self.args.discount_r * discount_reward# - float(self.args.kl_coef * kl_reward[i][num-j-1])
+        #             else:
+        #                 discount_reward = self.args.discount_r * discount_reward# - float(self.args.kl_coef * kl_reward[i][num-j-1])
+        #             rewards[i].append(discount_reward)
+        #             reward_collect.append(discount_reward)
+        #         rewards[i].reverse()
+        #         while len(rewards[i]) < self.args.max_pt_len:
+        #             rewards[i].append(0)
             
-            reward_collect = np.array(reward_collect)
-            r_mean, r_std = np.mean(reward_collect), np.std(reward_collect)
+        #     reward_collect = np.array(reward_collect)
+        #     r_mean, r_std = np.mean(reward_collect), np.std(reward_collect)
 
-            for i in range(self.args.max_pt_len):
-                batch_r = []
-                for k in range(batch_size):
-                    batch_r.append(rewards[k][i])   
-                batchwise_pt_len_rewards.append(batch_r[:])
-            
+        #     for i in range(self.args.max_pt_len):
+        #         batch_r = []
+        #         for k in range(batch_size):
+        #             batch_r.append(rewards[k][i])   
+        #         batchwise_pt_len_rewards.append(batch_r[:])
+        
+        # batch_kl = [sum(x) / (len(x) + 1e-9) for x in kl_reward]
+        # sum_kl = sum(batch_kl) 
+        sum_kl = 0
         flatten_states = []
         flatten_rewards = []
         flatten_actions = []
@@ -314,7 +325,7 @@ class agent(nn.Module):
         flatten_states.extend(old_states)
         flatten_logprobs.extend(old_logprobs)
         flatten_actions.extend(old_actions)
-        flatten_rewards.extend(batchwise_pt_len_rewards)
+    #    flatten_rewards.extend(batchwise_pt_len_rewards)
         flatten_mask.extend(old_mask)
 
         flatten_dict = {'flatten_states': flatten_states,
@@ -322,14 +333,13 @@ class agent(nn.Module):
                         'flatten_actions': flatten_actions,
                         'flatten_mask': flatten_mask,
                         'flatten_rewards': flatten_rewards,
-                        'r_mean': r_mean,
-                        'r_std': r_std,
                         'eos_index': eos_index,
                         'score': score,
                         'task': task,
                         "conversation":conversation,
                         "model_response":model_response,
                         "input_string": first_input_string,
+                        'classify_reward': score_emo
                         }
 
         return flatten_dict
@@ -339,12 +349,13 @@ class agent(nn.Module):
         flatten_states = flatten_dict['flatten_states']
         flatten_logprobs = flatten_dict['flatten_logprobs']
         flatten_actions = flatten_dict['flatten_actions']
-        flatten_rewards = flatten_dict['flatten_rewards']
+        # flatten_rewards = flatten_dict['flatten_rewards']
         flatten_mask = flatten_dict['flatten_mask']
         task = flatten_dict['task']
-        r_mean, r_std = flatten_dict['r_mean'], flatten_dict['r_std']
+        # r_mean, r_std = flatten_dict['r_mean'], flatten_dict['r_std']
         eos_index = flatten_dict['eos_index']
         # inputs_id = inputs_id.to(device)
+        score_emo = flatten_dict['classify_reward']
         batch_size = self.args.bz
 
         mask = mask.to(device)
@@ -364,7 +375,7 @@ class agent(nn.Module):
         prediction_list = []
         contrastive_list = [[] for _ in range(len(flatten_states[0]))]
         length_list = [1 for _ in range(len(flatten_states[0]))]
-
+        kl_reward = [[] for i in range(batch_size)]
         
 
         for num in range(len(flatten_states)):
@@ -377,18 +388,28 @@ class agent(nn.Module):
             position_ids = position_ids[:, -1].unsqueeze(-1).to(device)
             temp_past = past
             output = self.prompt.model(flatten_states[num], past_key_values=temp_past, attention_mask=flatten_mask[num], position_ids=position_ids)
+            kl_output = self.kl_model(flatten_states[num], past_key_values=temp_past, attention_mask=flatten_mask[num], position_ids=position_ids)
             logits, past = output['logits'], output['past_key_values']
-            
+            kl_logits = kl_output['logits']
+            probs = torch.softmax(logits.squeeze(0).squeeze(1), dim=-1)
+            kl_probs = torch.softmax(kl_logits.squeeze(0).squeeze(1), dim=-1)
+            dist = Categorical(probs)
+            kl_dist = Categorical(kl_probs)
+            for j in range(batch_size):
+                act = flatten_actions[num][j]
+                kl_reward[j].append((dist.log_prob(act.squeeze()).detach().cpu() - kl_dist.log_prob(act.squeeze()).detach().cpu())[j])
             
             hidden_states = self.prompt.model.transformer(flatten_states[num],past_key_values=temp_past, attention_mask=flatten_mask[num], position_ids=position_ids)[0]      
             hidden = self.prompt.state_network(hidden_states)
             prediction_list.append(hidden)
-            logits_list.append(logits)
-        
+            logits_list.append(logits) 
+        for j in range(len(kl_reward)):
+            kl_reward[j] = kl_reward[j][:eos_index[j]]
+        flatten_rewards, r_mean, r_std = self.prepare_reward(score_emo, kl_reward, eos_index, batch_size)
         outter_count = 0
         for num in range(len(flatten_states)):
             prediction = prediction_list[num]
-            actionprobs = F.softmax(logits_list[num],dim=-1)
+            actionprobs = F.softmax(logits_list[num], dim=-1)
             rewards_tensor = torch.tensor(flatten_rewards[num]).to(device)
             rewards_norm = (rewards_tensor - r_mean) / (r_std + 1e-9) + r_mean
 
@@ -422,7 +443,7 @@ class agent(nn.Module):
             
         pg_loss /= (outter_count + 1e-9)
         mse /= (outter_count + 1e-9)
-        loss += pg_loss + mse - self.args.ep_lr*entropy
+        loss += pg_loss + mse# - self.args.ep_lr * entropy
 
 
         if self.args.lm_lr != 0: 
@@ -443,6 +464,10 @@ class agent(nn.Module):
 
         flatten_dict["contrastive"] = contrastive_list
         flatten_dict["length"] = length_list
+    
+        batch_kl = [sum(x) / (len(x) + 1e-9) for x in kl_reward]
+        sum_kl = sum(batch_kl) 
+        flatten_dict['sum_kl'] = sum_kl
         if self.args.lm_lr != 0:
             flatten_dict['lm_loss'] = lm_loss.item()
         else:
@@ -450,7 +475,41 @@ class agent(nn.Module):
 
         return loss, flatten_dict, mse.item(), pg_loss.item(), entropy
 
+    def prepare_reward(self, score_emo, kl_reward, eos_index, batch_size):
+        batchwise_pt_len_rewards= []
+        reward_collect = []
+        r_mean = 0
+        r_std = 0
 
+        rewards = [[] for i in range(batch_size)]
+
+        for i in range(batch_size):
+            reward = score_emo[i]
+            num = self.args.max_pt_len if eos_index[i] >= self.args.max_pt_len else eos_index[i] 
+            discount_reward = 0
+            for j in range(num):
+                if j == 0:
+                    discount_reward = reward + self.args.discount_r * discount_reward - float(self.args.kl_coef * kl_reward[i][num-j-1])
+                else:
+                    discount_reward = self.args.discount_r * discount_reward - float(self.args.kl_coef * kl_reward[i][num-j-1])
+                rewards[i].append(discount_reward)
+                reward_collect.append(discount_reward)
+            rewards[i].reverse()
+            while len(rewards[i]) < self.args.max_pt_len:
+                rewards[i].append(0)
+        
+        reward_collect = np.array(reward_collect)
+        r_mean, r_std = np.mean(reward_collect), np.std(reward_collect)
+
+        for i in range(self.args.max_pt_len):
+            batch_r = []
+            for k in range(batch_size):
+                batch_r.append(rewards[k][i])   
+            batchwise_pt_len_rewards.append(batch_r[:])
+        flatten_rewards = []
+        flatten_rewards.extend(batchwise_pt_len_rewards)
+        return flatten_rewards, r_mean, r_std
+        
     def emotion_reward(self, sentences):
 
 
@@ -599,10 +658,11 @@ class agent(nn.Module):
         coherence_score = 0
         control_score = 0
         lm_loss = 0
-        
+        sum_kl = 0
 
         for score in flatten_dicts:
             training_score += score['score']
+            sum_kl += score['sum_kl']
             lm_loss += score['lm_loss']
 
         wandb.log({'outerloss': total_loss / meta_total , \
@@ -610,7 +670,8 @@ class agent(nn.Module):
                     'outerpg': total_pg / meta_total, \
                     'outerentropy': total_entropy / meta_total, \
                     'outerscore': training_score / self.args.bz / meta_total, \
-                    'lm_loss': lm_loss / meta_total}, \
+                    'lm_loss': lm_loss / meta_total, \
+                    'kl': sum_kl / self.args.bz / meta_total}, \
                  #   'controllable_score':control_score / self.args.bz / meta_total, \
                  #   'coherence_score': coherence_score / self.args.bz / meta_total} \ 
                     step=batch)

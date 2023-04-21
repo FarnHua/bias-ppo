@@ -56,14 +56,10 @@ def main():
     Prompt = prompt(args)
     Dataset = dataset(args.path, Prompt.tokenizer)
     dataloader = DataLoader(Dataset, batch_size=args.bz, shuffle=True, num_workers=0)
-<<<<<<< HEAD
-    pbar = tqdm(dataloader, position=0)
-=======
     Agent = agent(args, Prompt, Bot, dataloader)
     
     # pbar = tqdm(dataloader, position=0)
     pbar = tqdm(range(args.end_batch))
->>>>>>> a4a636b4021d97ca2558b243f19fa8de13265ea8
     batch = 0
 
     # for inputs_id, mask, ll in pbar:
@@ -126,8 +122,9 @@ def main():
 
                 
                 ## after k_epoch, update demo model 
-                Prompt.model_demo.load_state_dict(Prompt.model.state_dict())
-                Prompt.state_network_demo.load_state_dict(Prompt.state_network.state_dict())
+                if args.update_demo:
+                    Prompt.model_demo.load_state_dict(Prompt.model.state_dict())
+                    Prompt.state_network_demo.load_state_dict(Prompt.state_network.state_dict())
                 sample_dicts = []
                 Prompt.model_demo.eval()
                 Prompt.state_network_demo.eval()
@@ -193,7 +190,7 @@ def main():
                                     '2: '+ sample_splits[1] + "; " + sample_bots[1])
                 else:
 
-                    if batch in [20, 400, 1000, 2000]:
+                    if batch in [20, 500, 1000, 2000]:
 
                         dest = f"results/{args.save_path}/"
                         os.makedirs(dest, exist_ok=True)
@@ -245,7 +242,11 @@ def set_arguments(parser):
     parser.add_argument("--ep_lr", type=float, default=0.01)
     parser.add_argument("--coh_r", type=float, default=0.01)
     parser.add_argument("--lm_lr", type=float, default=0.5)
+    parser.add_argument("--kl_coef", type=float, default=0.02)
     parser.add_argument("--num_testing", type=int, default=1)
+    parser.add_argument('--update_demo', dest='update_demo', action='store_true')
+    parser.add_argument('--no-update_demo', dest='update_demo', action='store_false')
+    parser.set_defaults(update_demo=True)
     parser.add_argument("--iters", type=str, default=25)
     parser.add_argument("--tags", type=str, default=None)
     parser.add_argument('--init_step', type=str, default="")
