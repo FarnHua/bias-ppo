@@ -191,7 +191,6 @@ class agent(nn.Module):
             
             
             model_response = [self.bot.tokenizer.decode(x, skip_special_tokens=True, clean_up_tokenization_spaces=True) for x in temp_sen]
-            print(model_response)
             first_input = list(inputs_id.cpu().detach().numpy())
             
             # model_response_input_ids = [np.array(x) for x in temp_sen]
@@ -202,7 +201,6 @@ class agent(nn.Module):
 
             bot_response = []
             first_input_string = [self.prompt.tokenizer.decode(x, skip_special_tokens=True) for x in first_input]
-            print(first_input_string)
             
         else:
             old_states = []
