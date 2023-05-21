@@ -200,7 +200,7 @@ class agent(nn.Module):
             #     first_input[j] = first_input[j][-l:]
 
             bot_response = []
-            first_input_string = [self.prompt.tokenizer.decode(x, skip_special_tokens=True) for x in first_input]
+            first_input_string = [self.bot.tokenizer.decode(x, skip_special_tokens=True) for x in first_input]
             
         else:
             old_states = []
