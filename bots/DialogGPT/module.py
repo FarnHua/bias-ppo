@@ -66,10 +66,10 @@ class bot(nn.Module):
 
                 prev_input = prev_input.squeeze(0).squeeze(1)
                 # prev_input = prev_input / 2.2
-                prev_input = torch.softmax(prev_input[:, :50257], dim=-1)
-                #prev_input = self.top_k_top_p_filtering(prev_input)
-                #prev_input = torch.multinomial(prev_input, num_samples=1)
-                prev_input = torch.argmax(prev_input, dim=-1)[:, None]
+                # prev_input = torch.softmax(prev_input[:, :50257], dim=-1)
+                prev_input = self.top_k_top_p_filtering(prev_input)
+                prev_input = torch.multinomial(prev_input, num_samples=1)
+                # prev_input = torch.argmax(prev_input, dim=-1)[:, None]
 
                 if i == 0:
                     for j in range(len(sentences)):    

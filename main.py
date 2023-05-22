@@ -44,7 +44,7 @@ def main():
         print("which mode do you want to use: pretrain / finetune / test")
         raise
     
-    wandb.init(mode=args.wandb, project='bias-ppo', tags=tags, name=args.exp_name, entity="jacksukk")
+    wandb.init(mode=args.wandb, project='bias_phase1', tags=tags, name=args.exp_name, entity="chatbot_ntu")
     wandb.config.update(args)
 
     bot = importlib.import_module(".module",f"bots.{args.bot}").bot
@@ -54,6 +54,7 @@ def main():
     
     Bot = bot(args)
     Prompt = prompt(args)
+    
     Dataset = dataset(args.path, Prompt.tokenizer)
     dataloader = DataLoader(Dataset, batch_size=args.bz, shuffle=True, num_workers=0)
     Agent = agent(args, Prompt, Bot, dataloader)
@@ -190,7 +191,7 @@ def main():
                                     '2: '+ sample_splits[1] + "; " + sample_bots[1])
                 else:
 
-                    if batch in [20, 500, 1000, 2000]:
+                    if batch in [100, 200, 300, 400]:
 
                         dest = f"results/{args.save_path}/"
                         os.makedirs(dest, exist_ok=True)
@@ -225,7 +226,8 @@ def set_arguments(parser):
     parser.add_argument("--type", type=str, default=None, help="The current option is [ 'word', 'emotion' ]")
     parser.add_argument("--exp_name", type=str, default="")
     parser.add_argument("--save_path", type=str, default="") # save path
-    parser.add_argument("--model", type=str, default="gpt2-medium") # load prompted model if we need to finetune or testing.
+    parser.add_argument("--model_ckpt", type=str, default="") 
+    parser.add_argument("--model_name", type=str, default="gpt2-large")
     parser.add_argument("--ratio", type=float, default=4)
     parser.add_argument("--log_interval",type=int, default=50)
     parser.add_argument("--save_interval",type=int, default=25)
