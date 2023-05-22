@@ -34,8 +34,8 @@ do
                         --mode finetune \
                         --prompt GPT2 \
                         --agent ppo_ptx_kl \
-                        --path /work/u5273929/bias-ppo-br/bias-ppo/gpt2_finetune/pretrain_data/ChatGPT.csv \
-                        --model_name /work/u5273929/bias-ppo-br/bias-ppo/gpt2_finetune/gpt2-l/gpt2-l-ChatGPT/checkpoint-2985\
+                        --path gpt2_finetune/pretrain_data/ChatGPT.csv \
+                        --model_name gpt2_finetune/gpt2-l/gpt2-l-ChatGPT/checkpoint-2985\
                         --bot LLaMA \
                         --dataset Netflix \
                         --type bias \

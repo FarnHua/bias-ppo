@@ -6,38 +6,41 @@ from torch.optim import AdamW
 from copy import deepcopy
 
 class prompt(base):
-
     def __init__(self, config):
         super().__init__(config)
-        """
-        self.model = ""
-        self.model = DialogueGPT(config)
-        """
-        self.mens = []
-        self.womens = []
-        self.men_keys_to_idx = {}
-        self.women_keys_to_idx = {}
+        
         self.args = config
-        self.device = self.train_device = self.demo_device = config.device if config else 'cuda'
-        self.configuration = GPT2Config.from_pretrained('gpt2-medium')
-        self.tokenizer = GPT2Tokenizer.from_pretrained('gpt2-medium', bos_token='<|startoftext|>',eos_token='<|endoftext|>', pad_token='<|pad|>')  
-        self.model = GPT2LMHeadModel.from_pretrained('finetune/neo_wo_ds/results/st/checkpoint')
-        self.model_demo = GPT2LMHeadModel.from_pretrained('finetune/neo_wo_ds/results/st/checkpoint')
-        self.state_network = nn.Sequential(nn.Dropout(0.1), nn.Linear(1024, 1))
-        self.state_network_demo = nn.Sequential(nn.Dropout(0.1), nn.Linear(1024,1))
+        self.device = self.train_device = self.demo_device = config.device
+        
 
-        # self.model.load_state_dict(torch.load('./finetune/gpt2-medium-4.pt'))
-        # self.model_demo.load_state_dict(torch.load('./finetune/gpt2-medium-4.pt'))
+        if "gpt2-medium" not in config.model_name:
 
-        ## can use a finetuned DialogueGPT
-        if config.model != 'gpt2-medium':
-            print(f"[Load LM from saved point]: the original path: results/{config.model}/checkpoint-step-{self.args.init_step}-prompt.pkl")
+            self.configuration = GPT2Config.from_pretrained("gpt2-large")
+            self.tokenizer = GPT2Tokenizer.from_pretrained("gpt2-large", bos_token='<|startoftext|>',eos_token='<|endoftext|>', pad_token='<|pad|>') 
+            self.tokenizer.pad_token = self.tokenizer.pad_token
+            self.model = GPT2LMHeadModel.from_pretrained(config.model_name)
+            self.model_demo = GPT2LMHeadModel.from_pretrained(config.model_name)
+            self.state_network = nn.Sequential(nn.Dropout(0.1), nn.Linear(1280, 1))
+            self.state_network_demo = nn.Sequential(nn.Dropout(0.1), nn.Linear(1280,1))
+
+        else:
+            
+            self.configuration = GPT2Config.from_pretrained('gpt2-medium')
+            self.tokenizer = GPT2Tokenizer.from_pretrained('gpt2-medium')  
+            self.tokenizer.pad_token = self.tokenizer.eos_token
+            self.model = GPT2LMHeadModel.from_pretrained('gpt2-medium')
+            self.model_demo = GPT2LMHeadModel.from_pretrained('gpt2-medium')
+            self.state_network = nn.Sequential(nn.Dropout(0.1), nn.Linear(1024, 1))
+            self.state_network_demo = nn.Sequential(nn.Dropout(0.1), nn.Linear(1024, 1))
+        
+        if config.model_ckpt != '':
+            print(f"[Load LM from saved point]: the original path: results/{config.model_ckpt}/checkpoint-step-{self.args.init_step}-prompt.pkl")
             print(f"[Load VM from saved point]: the original path: results/{config.model}/checkpoint-step-{self.args.init_step}-value.pkl")
             
-            self.model = GPT2LMHeadModel.from_pretrained(config.model+f"/checkpoint-step-{self.args.init_step}-prompt.pkl", config=self.configuration, local_files_only=True)
-            self.model_demo = GPT2LMHeadModel.from_pretrained(config.model+f"/checkpoint-step-{self.args.init_step}-prompt.pkl", config=self.configuration, local_files_only=True)
-            self.state_network.load_state_dict(torch.load(config.model + f"/checkpoint-step-{self.args.init_step}-value.pkl"))
-            self.state_network_demo.load_state_dict(torch.load(config.model + f"/checkpoint-step-{self.args.init_step}-value.pkl"))
+            self.model = GPT2LMHeadModel.from_pretrained(config.model_ckpt+f"/checkpoint-step-{self.args.init_step}-prompt.pkl", config=self.configuration, local_files_only=True)
+            self.model_demo = GPT2LMHeadModel.from_pretrained(config.model_ckpt+f"/checkpoint-step-{self.args.init_step}-prompt.pkl", config=self.configuration, local_files_only=True)
+            self.state_network.load_state_dict(torch.load(config.model_ckpt + f"/checkpoint-step-{self.args.init_step}-value.pkl"))
+            self.state_network_demo.load_state_dict(torch.load(config.model_ckpt + f"/checkpoint-step-{self.args.init_step}-value.pkl"))
 
         self.optim_param = list(self.model.named_parameters())
         no_decay = ['bias', 'ln']   # no decay for bias and LayerNorm (ln)
@@ -56,9 +59,7 @@ class prompt(base):
         self.state_network.to(self.device)
         self.state_network_demo.to(self.device)
         self.model_demo.eval()
-        self.model.eval()
         self.state_network_demo.eval()
-        self.bias_task()
     
     def prepare_input(self, task, inputs_id, mask, model):
         inputs_id = inputs_id.to(self.device)
@@ -90,88 +91,4 @@ class prompt(base):
         
         return inputs_id, new_mask, last[:]        
     
-    def sample(self, batch_size=8):
-        
-        gender1 = []
-        gender2 = []
-        while len(gender1) < batch_size // 2:
-            sentences = ['<|startoftext|>' for i in range(batch_size)]
-          #  print(sentences)
-            input = self.tokenizer.batch_encode_plus(sentences, return_tensors='pt', padding=True).to(self.device)
-           # print(input)
-            reply_ids = self.model.generate(**input, num_beams=1, do_sample=True, pad_token_id=self.tokenizer.pad_token_id)
-            reply_string = self.tokenizer.batch_decode(reply_ids, skip_special_tokens=True, clean_up_tokenization_spaces=True)
-            #print('hi')
-            for x in reply_string:
-
-            
-                resp1, resp2, gen = self.replace_sentence(x)
-                if gen == False: continue
-                gender1.append(resp1)
-                gender2.append(resp2)
-                if len(gender1) >= batch_size // 2: break 
-        
-        return gender1 + gender2
-
-    def replace_sentence(self, sens):
-        ''' This function returns two sentences correspond to the given sentence
-        str --> str, str
-        e.g. 
-        He is my father  --> He is my father, She is my mother
-    '''
-        ret_1 = " "
-        ret_2 = " "
-
-        key_word_idx = []
-
-        sens = sens.replace('\n', '') + '\n'
-
-        sens_without_period = []
-        
-        sens = [x.lower() for x in sens.split()]
-
-        period = [',', '.', '!', '?', '<', '>', '~', '{', '}', '[', ']', "'", '"', ':']
-        for s in sens:
-            s_ = s
-            for p in period:
-                s_ = s_.replace(p, '')
-            sens_without_period.append(s_)
-
-        assert(len(sens_without_period) == len(sens))
-
-        # find key word list 
-        for i in range(len(sens_without_period)) : 
-            # print(sens_without_period[i] + '|')
-            if sens_without_period[i] in self.mens or sens_without_period[i] in self.womens :
-                # print("PASS")
-                key_word_idx.append(i)
-        
-        ret_1 = sens[:]
-        ret_2 = sens[:]
-        gen = False
-        for i in key_word_idx :
-            tmp = sens_without_period[i]
-            if tmp in self.womens :
-                ret_1[i] = ret_1[i].replace(tmp, self.mens[self.women_keys_to_idx[tmp]])
-                gen = True
-            
-            if tmp in self.mens :
-                ret_2[i] = ret_2[i].replace(tmp, self.womens[self.men_keys_to_idx[tmp]])
-                gen = True
-        
-        return " ".join(ret_1), " ".join(ret_2), gen
-    def bias_task(self):
-        idx = 0
-        with open('./keywords/men.txt') as fp :
-            idx = 0
-            for line in fp.read().splitlines() :
-                self.mens.append(line.lower())
-                self.men_keys_to_idx[line.lower()] = idx
-                idx += 1
-        
-        with open('./keywords/women.txt') as fp : 
-            idx = 0
-            for line in fp.read().splitlines() :
-                self.womens.append(line.lower())
-                self.women_keys_to_idx[line.lower()] = idx
-                idx += 1
+    

@@ -48,7 +48,8 @@ do
                         --prompt GPT2 \
                         --agent ppo_ipx \
                         --dataset Netflix \
-			--model gpt2-medium \
+                        --path gpt2_finetune/pretrain_data/netflix_train_key.csv \
+			--model_name gpt2-medium \
                         --bot blenderbot \
                         --type bias \
                         --exp_name net_dis_1_nt_20_${lm_lr[$SLURM_ARRAY_TASK_ID-1]}_${lr[$SLURM_ARRAY_TASK_ID-1]}-blender_medium_ppo_ipx \
