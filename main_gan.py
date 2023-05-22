@@ -229,7 +229,8 @@ def set_arguments(parser):
     parser.add_argument("--type", type=str, default=None, help="The current option is [ 'word', 'emotion' ]")
     parser.add_argument("--exp_name", type=str, default="")
     parser.add_argument("--save_path", type=str, default="") # save path
-    parser.add_argument("--model", type=str, default="gpt2-medium") # load prompted model if we need to finetune or testing.
+    parser.add_argument("--model_ckpt", type=str, default="") 
+    parser.add_argument("--model_name", type=str, default="gpt2-large")
     parser.add_argument("--ratio", type=float, default=4)
     parser.add_argument("--log_interval",type=int, default=50)
     parser.add_argument("--save_interval",type=int, default=25)
