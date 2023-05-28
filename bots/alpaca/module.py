@@ -9,15 +9,18 @@ class bot(nn.Module):
         """
         self.bot = GPT3_api or Blenderbot or DialogGPT
         """
-        self.device = "cuda:0"
+        self.device = "cuda:1"
         self.tokenizer = LlamaTokenizer.from_pretrained("chainyo/alpaca-lora-7b")
         self.lm = model = LlamaForCausalLM.from_pretrained(
             "chainyo/alpaca-lora-7b",
             # load_in_8bit=True,
             torch_dtype=torch.float16,
-            device_map="auto",
+            # device_map="auto",
         )
         self.lm.to(self.device)
+        # print(self.lm.device)
+        # import pdb
+        # pdb.set_trace()
         self.lm.eval()
         self.generation_config = GenerationConfig(
             temperature=0.2,
@@ -53,7 +56,15 @@ class bot(nn.Module):
             for i in range(len(prefix_sentences)):
                 prompt = self.generate_prompt(prefix_sentences[i], None)
                 input_ids = self.tokenizer(prompt, return_tensors="pt").input_ids
-                input_ids = input_ids.to(self.lm.device)
+                input_ids = input_ids.to("cuda:1")
+                self.lm.to("cuda:1")
+                # print("\n\n\n")
+                # print(f"alpaca.device : {self.lm.device}")
+                # print(f"inputs_id.device : {input_ids.device}")
+                # print("\n\n\n")
+                # assert (self.lm.device == input_ids.device)
+                # import pdb
+                # pdb.set_trace()
                 outputs = self.lm.generate(
                     input_ids=input_ids,
                     generation_config=self.generation_config,
@@ -66,4 +77,3 @@ class bot(nn.Module):
                 # import pdb
                 # pdb.set_trace()
         return reply_string
-
