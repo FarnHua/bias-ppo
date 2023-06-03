@@ -10,8 +10,13 @@ class bot(nn.Module):
         """
         self.bot = GPT3_api or Blenderbot or DialogGPT
         """
+<<<<<<< HEAD
         openai.organization = "org-9VP7zbu5OprKdttIEI0m2wqX"
         openai.api_key = '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'
+=======
+        openai.organization = ""
+        openai.api_key = ''
+>>>>>>> 988592ebf42c847c0691f0480b97447926b630a1
 
     def make_response(self, prefix_sentences):
         with torch.no_grad():
@@ -43,3 +48,7 @@ class bot(nn.Module):
         # import pdb
         # pdb.set_trace()
         return reply_string
+<<<<<<< HEAD
+=======
+
+>>>>>>> 988592ebf42c847c0691f0480b97447926b630a1

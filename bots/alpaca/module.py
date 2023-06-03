@@ -57,7 +57,11 @@ class bot(nn.Module):
                 prompt = self.generate_prompt(prefix_sentences[i], None)
                 input_ids = self.tokenizer(prompt, return_tensors="pt").input_ids
                 input_ids = input_ids.to("cuda:1")
+<<<<<<< HEAD
                 # self.lm.to("cuda:1")
+=======
+                self.lm.to("cuda:1")
+>>>>>>> 988592ebf42c847c0691f0480b97447926b630a1
                 # print("\n\n\n")
                 # print(f"alpaca.device : {self.lm.device}")
                 # print(f"inputs_id.device : {input_ids.device}")
@@ -70,7 +74,10 @@ class bot(nn.Module):
                     generation_config=self.generation_config,
                     return_dict_in_generate=True,
                     output_scores=True,
+<<<<<<< HEAD
                     max_new_tokens=30
+=======
+>>>>>>> 988592ebf42c847c0691f0480b97447926b630a1
                 )
                 response = self.tokenizer.decode(outputs.sequences[0], skip_special_tokens=True)
                 response = response.split("Response:")[-1].replace('\n', '').strip()
