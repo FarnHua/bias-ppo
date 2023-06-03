@@ -11,36 +11,48 @@ class prompt(base):
         
         self.args = config
         self.device = self.train_device = self.demo_device = config.device
-        
+        self.configuration = GPT2Config.from_pretrained("gpt2-medium")
 
-        if "gpt2-medium" not in config.model_name:
+        if 'gpt2-m' in config.model_name:
+            hidden_size = 1024
+        else:
+            hidden_size = 1280
 
+        self.state_network = nn.Sequential(nn.Dropout(0.1), nn.Linear(hidden_size, 1))
+        self.state_network_demo = nn.Sequential(nn.Dropout(0.1), nn.Linear(hidden_size, 1))
+
+
+        if config.model_ckpt != '':
+
+            print(f"[Load LM from saved point]: the original path: results/{config.model_ckpt}/checkpoint-step-{self.args.init_step}-prompt.pkl")
+            print(f"[Load VM from saved point]: the original path: results/{config.model_ckpt}/checkpoint-step-{self.args.init_step}-value.pkl")
+            self.tokenizer = GPT2Tokenizer.from_pretrained('gpt2-medium', bos_token='<|startoftext|>',eos_token='<|endoftext|>', pad_token='<|pad|>')  
+            self.model = GPT2LMHeadModel.from_pretrained("results/" + config.model_ckpt + f"/checkpoint-step-{self.args.init_step}-prompt.pkl", config=self.configuration, local_files_only=True, ignore_mismatched_sizes=True)
+            self.model.resize_token_embeddings(len(self.tokenizer))
+            self.model_demo = GPT2LMHeadModel.from_pretrained("results/" + config.model_ckpt + f"/checkpoint-step-{self.args.init_step}-prompt.pkl", config=self.configuration, local_files_only=True, ignore_mismatched_sizes=True)
+            self.model_demo.resize_token_embeddings(len(self.tokenizer))
+            
+            self.state_network.load_state_dict(torch.load("results/" + config.model_ckpt + f"/checkpoint-step-{self.args.init_step}-value.pkl"))
+            self.state_network_demo.load_state_dict(torch.load("results/" + config.model_ckpt + f"/checkpoint-step-{self.args.init_step}-value.pkl"))
+
+        elif "gpt2-m" not in config.model_name:
             self.configuration = GPT2Config.from_pretrained("gpt2-large")
             self.tokenizer = GPT2Tokenizer.from_pretrained("gpt2-large", bos_token='<|startoftext|>',eos_token='<|endoftext|>', pad_token='<|pad|>') 
             self.tokenizer.pad_token = self.tokenizer.pad_token
             self.model = GPT2LMHeadModel.from_pretrained(config.model_name)
             self.model_demo = GPT2LMHeadModel.from_pretrained(config.model_name)
-            self.state_network = nn.Sequential(nn.Dropout(0.1), nn.Linear(1024, 1))
-            self.state_network_demo = nn.Sequential(nn.Dropout(0.1), nn.Linear(1024,1))
+            
 
         else:
-            
             self.configuration = GPT2Config.from_pretrained('gpt2-medium')
-            self.tokenizer = GPT2Tokenizer.from_pretrained('gpt2-medium')  
+            self.tokenizer = GPT2Tokenizer.from_pretrained('gpt2-medium', bos_token='<|startoftext|>',eos_token='<|endoftext|>', pad_token='<|pad|>')  
             self.tokenizer.pad_token = self.tokenizer.eos_token
-            self.model = GPT2LMHeadModel.from_pretrained('gpt2-medium')
-            self.model_demo = GPT2LMHeadModel.from_pretrained('gpt2-medium')
-            self.state_network = nn.Sequential(nn.Dropout(0.1), nn.Linear(1024, 1))
-            self.state_network_demo = nn.Sequential(nn.Dropout(0.1), nn.Linear(1024, 1))
+            self.model = GPT2LMHeadModel.from_pretrained(config.model_name)
+            self.model_demo = GPT2LMHeadModel.from_pretrained(config.model_name)
+            # self.model.resize_token_embeddings(len(self.tokenizer))
+            # self.model_demo.resize_token_embeddings(len(self.tokenizer))
         
-        if config.model_ckpt != '':
-            print(f"[Load LM from saved point]: the original path: results/{config.model_ckpt}/checkpoint-step-{self.args.init_step}-prompt.pkl")
-            print(f"[Load VM from saved point]: the original path: results/{config.model}/checkpoint-step-{self.args.init_step}-value.pkl")
-            
-            self.model = GPT2LMHeadModel.from_pretrained(config.model_ckpt+f"/checkpoint-step-{self.args.init_step}-prompt.pkl", config=self.configuration, local_files_only=True)
-            self.model_demo = GPT2LMHeadModel.from_pretrained(config.model_ckpt+f"/checkpoint-step-{self.args.init_step}-prompt.pkl", config=self.configuration, local_files_only=True)
-            self.state_network.load_state_dict(torch.load(config.model_ckpt + f"/checkpoint-step-{self.args.init_step}-value.pkl"))
-            self.state_network_demo.load_state_dict(torch.load(config.model_ckpt + f"/checkpoint-step-{self.args.init_step}-value.pkl"))
+        
 
         self.optim_param = list(self.model.named_parameters())
         no_decay = ['bias', 'ln']   # no decay for bias and LayerNorm (ln)
