@@ -19,11 +19,11 @@
 #SBATCH --gpus-per-node=1
 #SBATCH --cpus-per-task=4
 #SBATCH --account=MST108253
-
+#MST111348
 ## number of tasks per node
 #SBATCH --ntasks-per-node=1
 
-#SBATCH --array=1-7
+#SBATCH --array=1-4
 ##SBATCH -e /checkpoints/hsuansu/slurm/slurm-%j.err
 ##SBATCH -o /checkpoints/hsuansu/slurm/slurm-%j.out
 ### Section 2: Setting environment variables for the job
@@ -39,35 +39,36 @@ ml miniconda3 cuda/11.7 gcc8/8.3.1
 conda info --envs
 conda activate ppo
 
-lr=("5e-6" "5e-6" "5e-6" "5e-6" "5e-6" "1e-5" "1e-5" )
-lm_lr=("0.1" "0.2" "0.3" "0.25" "0.15" "0.2" "0.15")
+lr=("5e-6" "5e-6" "5e-6" "5e-6")
+kl_coef=("0.02" "0.01" "0.1" "0.005")
 for i in 1e-5
 do
     CUDA_VISIBLE_DEVICES=0 python main.py \
                         --mode finetune \
                         --prompt GPT2 \
-                        --agent ppo_ipx \
+                        --agent ppo_ptx_kl \
                         --dataset Netflix \
-                        --path gpt2_finetune/pretrain_data/netflix_train_key.csv \
-			--model_name gpt2-medium \
+			--model gpt2-medium \
                         --bot blenderbot \
                         --type bias \
-                        --exp_name net_dis_1_nt_20_${lm_lr[$SLURM_ARRAY_TASK_ID-1]}_${lr[$SLURM_ARRAY_TASK_ID-1]}-blender_medium_ppo_ipx \
+                        --exp_name up_kl_dis_1_nt_20_${kl_coef[$SLURM_ARRAY_TASK_ID-1]}_${lr[$SLURM_ARRAY_TASK_ID-1]}-blender_medium_ppo_ipx \
                         --log_interval 25 \
                         --seed 1 \
+                        --kl_coef ${kl_coef[$SLURM_ARRAY_TASK_ID-1]} \
                         --bz 8 \
                         --k_epoch 5 \
                         --discount_r 1.0 \
                         --end_batch 1040 \
                         --sample_time 8 \
-                        --max_pt_len 32 \
+                        --max_pt_len 20 \
                         --tags inner-lr \
 			--inner_lr ${lr[$SLURM_ARRAY_TASK_ID-1]}\
                         --init_step 2 \
-                        --save_path net_dis_1_nt_20_${lm_lr[$SLURM_ARRAY_TASK_ID-1]}_${lr[$SLURM_ARRAY_TASK_ID-1]}-blender_medium_ppo_ipx \
+                        --save_path up_kl_dis_1_nt_20_${kl_coef[$SLURM_ARRAY_TASK_ID-1]}_${lr[$SLURM_ARRAY_TASK_ID-1]}-blender_medium_ppo_ipx \
                         --save_interval 20 \
                         --ep_lr 1.0 \
-                        --lm_lr ${lm_lr[$SLURM_ARRAY_TASK_ID-1]} \
+                        --lm_lr 0.2 \
+                        --no-update_demo \
                         --wandb online
 done
 # for i in 1e-5 
