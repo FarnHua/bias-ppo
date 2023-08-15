@@ -24,12 +24,13 @@ class agent(nn.Module):
         self.args = config
 
         device = prompt.device
-        self.bot_device = bot.device
+        # self.bot_device = bot.device
         self.mode = config.mode
         self.prompt = prompt
         self.kl_model = deepcopy(prompt.model)
         self.bot = bot
         self.type = config.type
+        self.eps_clip = config.eps_clip
         self.toxicity_client = discovery.build(
             "commentanalyzer",
             "v1alpha1",
@@ -362,7 +363,7 @@ class agent(nn.Module):
         mask = mask.to(device)
         # _, past, flatten_all, _ = self.prompt.prepare_input(task, inputs_id, mask, self.prompt.model)
         past = None
-        eps_clip = 0.2
+        eps_clip = self.eps_clip
         mse = 0
         true_total_mse = 0
         entropy = 0
@@ -736,10 +737,7 @@ class agent(nn.Module):
                     sample_prompt = prompt[i]
                     abs_diff = predict_list[i]
                     self.table.add_data(batch, sample_prompt, sample_splits[0], sample_bots[0], sample_splits[1], sample_bots[1], abs_diff)
-                    # f.write(sample_prompt + ". 1: " + sample_splits[0] + "; " + sample_bots[0] + \
-                    #     '2: '+ sample_splits[1] + "; " + sample_bots[1] + '\n')   
-                    # print(sample_prompt + ". 1: " + sample_splits[0] + "; " + sample_bots[0] + \
-                    #     '2: '+ sample_splits[1] + "; " + sample_bots[1])
+                    
             
             new_table = wandb.Table(
                 columns=self.table.columns, data=self.table.data
