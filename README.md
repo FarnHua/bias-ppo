@@ -2,11 +2,7 @@
 
 Modified from https://github.com/pohanchi/blackboxbot
 
-
-* Evaluate a bot
-  * see eval/
-
-If want to use llama
+* Install Requirements 
 ```
-git clone https://github.com/ypeleg/llama.git
+pip install requirements.txt
 ```
