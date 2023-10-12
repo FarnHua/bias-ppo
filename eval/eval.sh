@@ -1,11 +1,11 @@
-python scripts/run_classifier.py \
+python run_classifier.py \
 --data_dir data/regard \
 --model_type bert \
---model_name_or_path models/bert_regard_v2_large/checkpoint-300 \
---output_dir models/bert_regard_v2_large \
+--model_name_or_path /work/u5273929/bias-ppo/eval/sentiment2/bert_sentiment_v2/checkpoint-60 \
+--output_dir /work/u5273929/bias-ppo/eval/sentiment2/bert_sentiment_v2 \
 --max_seq_length 128 \
 --do_predict \
---test_file blenderbot_women.tsv \
+--test_file blenderbot_FT_women.tsv \
 --do_lower_case \
 --per_gpu_eval_batch_size 32 \
 --model_version 2 \

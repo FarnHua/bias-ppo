@@ -1,0 +1,25 @@
+Message from TWCC HPC admin
+-----------------------
+loading miniconda3 with conda 4.8.4/python 3.7
+docs : https://hackmd.io/@kmo/twcc_hpc_conda
+-----------------------
+
+[INFO] : Loading model, default using gpt2-large
+Traceback (most recent call last):
+  File "ppl.py", line 104, in <module>
+    main()    
+  File "ppl.py", line 46, in main
+    df = pd.read_csv(args.file_path)
+  File "/home/u5273929/.local/lib/python3.7/site-packages/pandas/io/parsers.py", line 676, in parser_f
+    return _read(filepath_or_buffer, kwds)
+  File "/home/u5273929/.local/lib/python3.7/site-packages/pandas/io/parsers.py", line 448, in _read
+    parser = TextFileReader(fp_or_buf, **kwds)
+  File "/home/u5273929/.local/lib/python3.7/site-packages/pandas/io/parsers.py", line 880, in __init__
+    self._make_engine(self.engine)
+  File "/home/u5273929/.local/lib/python3.7/site-packages/pandas/io/parsers.py", line 1114, in _make_engine
+    self._engine = CParserWrapper(self.f, **self.options)
+  File "/home/u5273929/.local/lib/python3.7/site-packages/pandas/io/parsers.py", line 1891, in __init__
+    self._reader = parsers.TextReader(src, **kwds)
+  File "pandas/_libs/parsers.pyx", line 374, in pandas._libs.parsers.TextReader.__cinit__
+  File "pandas/_libs/parsers.pyx", line 674, in pandas._libs.parsers.TextReader._setup_parser_source
+FileNotFoundError: [Errno 2] File /work/u5273929/bias-ppo/result/gpt4_response_ChatGPT_before_rl.csv does not exist: '/work/u5273929/bias-ppo/result/gpt4_response_ChatGPT_before_rl.csv'

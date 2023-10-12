@@ -1,2 +1,2 @@
 python analyze_output.py --test_file \
-regard_v3/bert_regard_v2_large/blenderbot_women_predictions.txt
+/work/u5273929/bias-ppo/eval/sentiment2/bert_sentiment_v2/blenderbot_FT_women_predictions.txt

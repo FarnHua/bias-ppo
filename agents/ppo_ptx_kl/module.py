@@ -24,12 +24,13 @@ class agent(nn.Module):
         self.args = config
 
         device = prompt.device
-        self.bot_device = bot.device
+        # self.bot_device = bot.device
         self.mode = config.mode
         self.prompt = prompt
         self.kl_model = deepcopy(prompt.model)
         self.bot = bot
         self.type = config.type
+        self.eps_clip = config.eps_clip
         self.toxicity_client = discovery.build(
             "commentanalyzer",
             "v1alpha1",
@@ -52,7 +53,7 @@ class agent(nn.Module):
         self.top_k = TopKLogitsWarper(top_k=self.top_k)
         self.pretrain_dataloader = ptx_dataloader
         self.ptx_loss_fn = nn.CrossEntropyLoss(ignore_index=-100)
-        self.table = wandb.Table(columns=['step', 'prompt', 'prompt1', 'response1', 'prompt2', 'response2'])
+        self.table = wandb.Table(columns=['step', 'prompt', 'prompt1', 'response1', 'prompt2', 'response2', 'abs_diff'])
         # if self.type == "emotion":
         #     self.emotion_task()
         #     self.classifier_tokenizer = BertTokenizer.from_pretrained("goemotion/ckpt/original/original/")
@@ -337,6 +338,7 @@ class agent(nn.Module):
                         'score': score,
                         'task': task,
                         "conversation":conversation,
+                        "predict_list":predict_list,
                         "model_response":model_response,
                         "input_string": first_input_string,
                         'classify_reward': score_emo
@@ -361,7 +363,7 @@ class agent(nn.Module):
         mask = mask.to(device)
         # _, past, flatten_all, _ = self.prompt.prepare_input(task, inputs_id, mask, self.prompt.model)
         past = None
-        eps_clip = 0.2
+        eps_clip = self.eps_clip
         mse = 0
         true_total_mse = 0
         entropy = 0
@@ -609,48 +611,96 @@ class agent(nn.Module):
         str --> str, str
         e.g. 
         He is my father  --> He is my father, She is my mother
-    '''
+        '''
         ret_1 = " "
         ret_2 = " "
 
         key_word_idx = []
-
         sens = sens.replace('\n', '') + '\n'
-
         sens_without_period = []
-        
         sens = [x.lower() for x in sens.split()]
-
         period = [',', '.', '!', '?', '<', '>', '~', '{', '}', '[', ']', "'", '"', ':']
+
         for s in sens:
             s_ = s
             for p in period:
-                s_ = s_.replace(p, '')
+        # s_ = s_.replace(p, '')
+                s_ = s_.split(p)[0]
             sens_without_period.append(s_)
 
-        assert(len(sens_without_period) == len(sens))
-
-        # find key word list 
         for i in range(len(sens_without_period)) : 
-            # print(sens_without_period[i] + '|')
-            if sens_without_period[i] in self.mens or sens_without_period[i] in self.womens :
-                # print("PASS")
-                key_word_idx.append(i)
-        
+            if sens_without_period[i] in self.mens:# or sens_without_period[i] in womens :
+                key_word_idx.append("m")
+            elif sens_without_period[i] in self.womens :
+                key_word_idx.append("w") 
+            else : 
+                key_word_idx.append("x")
+
         ret_1 = sens[:]
         ret_2 = sens[:]
+        assert(len(sens_without_period) == len(sens) and len(sens) == len(key_word_idx))
+
         gen = False
-        for i in key_word_idx :
-            tmp = sens_without_period[i]
-            if tmp in self.womens :
-                ret_1[i] = ret_1[i].replace(tmp, self.mens[self.women_keys_to_idx[tmp]])
-                gen = True
-            
-            if tmp in self.mens :
+
+        for i in range(len(sens_without_period)) : 
+            if key_word_idx[i] == "x" : continue
+            elif key_word_idx[i] == 'm' :
+                tmp = sens_without_period[i]
                 ret_2[i] = ret_2[i].replace(tmp, self.womens[self.men_keys_to_idx[tmp]])
                 gen = True
-        
+            elif key_word_idx[i] == 'w' :
+                tmp = sens_without_period[i] 
+                ret_2[i] = ret_2[i].replace(tmp, self.mens[self.women_keys_to_idx[tmp]]) 
+                gen = True
+
         return " ".join(ret_1), " ".join(ret_2), gen
+    #     ''' This function returns two sentences correspond to the given sentence
+    #     str --> str, str
+    #     e.g. 
+    #     He is my father  --> He is my father, She is my mother
+    # '''
+    #     ret_1 = " "
+    #     ret_2 = " "
+
+    #     key_word_idx = []
+
+    #     sens = sens.replace('\n', '') + '\n'
+
+    #     sens_without_period = []
+        
+    #     sens = [x.lower() for x in sens.split()]
+
+    #     period = [',', '.', '!', '?', '<', '>', '~', '{', '}', '[', ']', "'", '"', ':']
+    #     for s in sens:
+    #         s_ = s
+    #         for p in period:
+    #             s_ = s_.replace(p, '')
+    #         sens_without_period.append(s_)
+
+    #     assert(len(sens_without_period) == len(sens))
+
+    #     # find key word list 
+    #     for i in range(len(sens_without_period)) : 
+    #         # print(sens_without_period[i] + '|')
+    #         if sens_without_period[i] in self.mens or sens_without_period[i] in self.womens :
+    #             # print("PASS")
+    #             key_word_idx.append(i)
+        
+    #     ret_1 = sens[:]
+    #     ret_2 = sens[:]
+    #     gen = False
+    #     for i in key_word_idx :
+    #         tmp = sens_without_period[i]
+    #         if tmp in self.womens :
+    #             ret_1[i] = ret_1[i].replace(tmp, self.mens[self.women_keys_to_idx[tmp]])
+    #             gen = True
+            
+    #         if tmp in self.mens :
+    #             ret_2[i] = ret_2[i].replace(tmp, self.womens[self.men_keys_to_idx[tmp]])
+    #             gen = True
+        
+    #     return " ".join(ret_1), " ".join(ret_2), gen
+
 
     def log_wandb(self, flatten_dicts, total_loss, total_mse, total_pg, total_entropy, batch):
         meta_total = len(flatten_dicts)
@@ -680,15 +730,14 @@ class agent(nn.Module):
                 bot_response=flatten_dict['conversation']
                 prompt=flatten_dict['model_response']
                 input_sentence=flatten_dict['input_string']
+                predict_list=flatten_dict['predict_list']
                 for i in range(len(bot_response)):
                     sample_splits = bot_response[i][0]
                     sample_bots = bot_response[i][1]
                     sample_prompt = prompt[i]
-                    self.table.add_data(batch, sample_prompt, sample_splits[0], sample_bots[0], sample_splits[1], sample_bots[1])
-                    # f.write(sample_prompt + ". 1: " + sample_splits[0] + "; " + sample_bots[0] + \
-                    #     '2: '+ sample_splits[1] + "; " + sample_bots[1] + '\n')   
-                    # print(sample_prompt + ". 1: " + sample_splits[0] + "; " + sample_bots[0] + \
-                    #     '2: '+ sample_splits[1] + "; " + sample_bots[1])
+                    abs_diff = predict_list[i]
+                    self.table.add_data(batch, sample_prompt, sample_splits[0], sample_bots[0], sample_splits[1], sample_bots[1], abs_diff)
+                    
             
             new_table = wandb.Table(
                 columns=self.table.columns, data=self.table.data

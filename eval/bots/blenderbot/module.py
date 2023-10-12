@@ -10,9 +10,11 @@ class bot(nn.Module):
         """
         self.bot = GPT3_api or Blenderbot or DialogGPT
         """
+        # model_name = "facebook/blenderbot-400M-distill"
+        model_name = '/work/u5273929/in-context/results/checkpoint-251' 
         self.device = config.device
-        self.tokenizer = BlenderbotTokenizer.from_pretrained("facebook/blenderbot-400M-distill")
-        self.lm = BlenderbotForConditionalGeneration.from_pretrained("facebook/blenderbot-400M-distill")
+        self.tokenizer = BlenderbotTokenizer.from_pretrained(model_name)
+        self.lm = BlenderbotForConditionalGeneration.from_pretrained(model_name)
         self.lm.to(self.device)
         self.lm.eval()
 

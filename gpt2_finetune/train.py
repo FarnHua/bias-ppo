@@ -4,11 +4,11 @@ from torch.utils.data import Dataset, random_split
 from transformers import GPT2Tokenizer, TrainingArguments, Trainer, GPTNeoForCausalLM, IntervalStrategy, GPT2LMHeadModel
 
 
-model_name = 'gpt2-large'
+model_name = 'gpt2-medium'
 data_path = '/work/u5273929/bias-ppo-br/bias-ppo/gpt2_finetune/pretrain_data/ChatGPT.csv'
 torch.manual_seed(42)
 
-tokenizer = GPT2Tokenizer.from_pretrained("gpt2-large", bos_token='<|startoftext|>',eos_token='<|endoftext|>', pad_token='<|pad|>')
+tokenizer = GPT2Tokenizer.from_pretrained("gpt2-medium", bos_token='<|startoftext|>',eos_token='<|endoftext|>', pad_token='<|pad|>')
 
 # model = GPTNeoForCausalLM.from_pretrained("EleutherAI/gpt-neo-1.3B").cuda()
 model = GPT2LMHeadModel.from_pretrained(model_name)
@@ -51,10 +51,10 @@ dataset = DialogDataset(dialogs, tokenizer, max_length=max_length)
 
 train_size = int(1.0 * len(dataset))
 train_dataset, val_dataset = random_split(dataset, [train_size, len(dataset) - train_size])
-training_args = TrainingArguments(output_dir='./gpt2-l/gpt2-l-ChatGPT', num_train_epochs=5, logging_steps=5,
+training_args = TrainingArguments(output_dir='./gpt2-m/gpt2-m-ChatGPT', num_train_epochs=5, logging_steps=5,
                                   save_strategy=IntervalStrategy.EPOCH,
                                   per_device_train_batch_size=8, per_device_eval_batch_size=8,
-                                  warmup_steps=100, weight_decay=0.01, logging_dir='./logs', report_to='wandb', run_name='gpt2-large_ChatGPT')
+                                  warmup_steps=100, weight_decay=0.01, logging_dir='./logs', report_to='wandb', run_name='gpt2-medium_ChatGPT')
 Trainer(model=model, args=training_args, train_dataset=dataset,
         data_collator=lambda data: {'input_ids': torch.stack([f[0] for f in data]),
                                     'attention_mask': torch.stack([f[1] for f in data]),

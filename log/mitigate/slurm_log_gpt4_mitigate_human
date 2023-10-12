@@ -1,0 +1,12 @@
+Message from TWCC HPC admin
+-----------------------
+loading miniconda3 with conda 4.8.4/python 3.7
+docs : https://hackmd.io/@kmo/twcc_hpc_conda
+-----------------------
+
+Traceback (most recent call last):
+  File "mitigate.py", line 205, in <module>
+    main()    
+  File "mitigate.py", line 76, in main
+    demo_mens.append(demos.send_1.tolist()[i].replace("\"", ""))
+UnboundLocalError: local variable 'demos' referenced before assignment

@@ -1,0 +1,1 @@
+python scripts/eval.py --sample_file data/generated_samples/sample.tsv --model_type regard2

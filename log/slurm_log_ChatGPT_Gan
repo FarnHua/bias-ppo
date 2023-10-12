@@ -1,0 +1,26 @@
+Message from TWCC HPC admin
+-----------------------
+loading miniconda3 with conda 4.8.4/python 3.7
+docs : https://hackmd.io/@kmo/twcc_hpc_conda
+-----------------------
+
+2023-05-26 21:05:46.564226: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2023-05-26 21:05:48.558422: W tensorflow/compiler/xla/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer.so.7'; dlerror: libnvinfer.so.7: cannot open shared object file: No such file or directory
+2023-05-26 21:05:48.558520: W tensorflow/compiler/xla/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer_plugin.so.7'; dlerror: libnvinfer_plugin.so.7: cannot open shared object file: No such file or directory
+2023-05-26 21:05:48.558536: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Cannot dlopen some TensorRT libraries. If you would like to use Nvidia GPU with TensorRT, please make sure the missing libraries mentioned above are installed properly.
+Loading checkpoint shards:   0%|          | 0/33 [00:00<?, ?it/s]Loading checkpoint shards:   3%|▎         | 1/33 [00:00<00:21,  1.48it/s]Loading checkpoint shards:   6%|▌         | 2/33 [00:01<00:20,  1.52it/s]Loading checkpoint shards:   9%|▉         | 3/33 [00:01<00:19,  1.57it/s]Loading checkpoint shards:  12%|█▏        | 4/33 [00:02<00:18,  1.53it/s]Loading checkpoint shards:  15%|█▌        | 5/33 [00:03<00:18,  1.51it/s]Loading checkpoint shards:  18%|█▊        | 6/33 [00:03<00:17,  1.51it/s]Loading checkpoint shards:  21%|██        | 7/33 [00:04<00:18,  1.42it/s]Loading checkpoint shards:  24%|██▍       | 8/33 [00:05<00:17,  1.43it/s]Loading checkpoint shards:  27%|██▋       | 9/33 [00:06<00:16,  1.43it/s]Loading checkpoint shards:  30%|███       | 10/33 [00:06<00:16,  1.42it/s]Loading checkpoint shards:  33%|███▎      | 11/33 [00:07<00:15,  1.43it/s]Loading checkpoint shards:  36%|███▋      | 12/33 [00:08<00:14,  1.43it/s]Loading checkpoint shards:  39%|███▉      | 13/33 [00:08<00:14,  1.41it/s]Loading checkpoint shards:  42%|████▏     | 14/33 [00:09<00:13,  1.45it/s]Loading checkpoint shards:  45%|████▌     | 15/33 [00:10<00:12,  1.48it/s]Loading checkpoint shards:  48%|████▊     | 16/33 [00:10<00:11,  1.45it/s]Loading checkpoint shards:  52%|█████▏    | 17/33 [00:11<00:11,  1.43it/s]Loading checkpoint shards:  55%|█████▍    | 18/33 [00:12<00:10,  1.45it/s]Loading checkpoint shards:  58%|█████▊    | 19/33 [00:13<00:09,  1.48it/s]Loading checkpoint shards:  61%|██████    | 20/33 [00:13<00:08,  1.50it/s]Loading checkpoint shards:  64%|██████▎   | 21/33 [00:14<00:08,  1.46it/s]Loading checkpoint shards:  67%|██████▋   | 22/33 [00:15<00:07,  1.47it/s]Loading checkpoint shards:  70%|██████▉   | 23/33 [00:15<00:06,  1.50it/s]Loading checkpoint shards:  73%|███████▎  | 24/33 [00:16<00:05,  1.50it/s]Loading checkpoint shards:  76%|███████▌  | 25/33 [00:17<00:05,  1.47it/s]Loading checkpoint shards:  79%|███████▉  | 26/33 [00:17<00:04,  1.50it/s]Loading checkpoint shards:  82%|████████▏ | 27/33 [00:18<00:03,  1.51it/s]Loading checkpoint shards:  85%|████████▍ | 28/33 [00:18<00:03,  1.54it/s]Loading checkpoint shards:  88%|████████▊ | 29/33 [00:19<00:02,  1.53it/s]Loading checkpoint shards:  91%|█████████ | 30/33 [00:20<00:02,  1.49it/s]Loading checkpoint shards:  94%|█████████▍| 31/33 [00:21<00:01,  1.50it/s]Loading checkpoint shards:  97%|█████████▋| 32/33 [00:21<00:00,  1.54it/s]Loading checkpoint shards: 100%|██████████| 33/33 [00:22<00:00,  1.68it/s]Loading checkpoint shards: 100%|██████████| 33/33 [00:22<00:00,  1.49it/s]
+Special tokens have been added in the vocabulary, make sure the associated word embeddings are fine-tuned or trained.
+[INFO] : Using 4524 data.
+  0%|          | 0/400 [00:00<?, ?it/s]
+  0%|          | 0/40 [00:00<?, ?it/s][A
+None, epoch: 0, score:0.0, loss:0.0:   0%|          | 0/40 [00:00<?, ?it/s][A  0%|          | 0/400 [00:00<?, ?it/s]
+Traceback (most recent call last):
+  File "main_gan.py", line 278, in <module>
+    main()    
+  File "main_gan.py", line 92, in main
+    reply_strs = Prompt.sample()
+  File "/home/u5273929/.local/lib/python3.7/site-packages/torch/nn/modules/module.py", line 1270, in __getattr__
+    type(self).__name__, name))
+AttributeError: 'prompt' object has no attribute 'sample'
+None, epoch: 0, score:0.0, loss:0.0:   0%|          | 0/40 [00:00<?, ?it/s]

@@ -1,0 +1,94 @@
+Message from TWCC HPC admin
+-----------------------
+loading miniconda3 with conda 4.8.4/python 3.7
+docs : https://hackmd.io/@kmo/twcc_hpc_conda
+-----------------------
+
+2023-07-03 15:56:07.034232: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2023-07-03 15:56:07.823565: W tensorflow/compiler/xla/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer.so.7'; dlerror: libnvinfer.so.7: cannot open shared object file: No such file or directory
+2023-07-03 15:56:07.823667: W tensorflow/compiler/xla/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer_plugin.so.7'; dlerror: libnvinfer_plugin.so.7: cannot open shared object file: No such file or directory
+2023-07-03 15:56:07.823683: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Cannot dlopen some TensorRT libraries. If you would like to use Nvidia GPU with TensorRT, please make sure the missing libraries mentioned above are installed properly.
+/home/u5273929/.local/lib/python3.7/site-packages/bitsandbytes/cuda_setup/main.py:149: UserWarning: /home/u5273929/.conda/envs/bias did not contain ['libcudart.so', 'libcudart.so.11.0', 'libcudart.so.12.0'] as expected! Searching further paths...
+  warn(msg)
+/home/u5273929/.local/lib/python3.7/site-packages/bitsandbytes/cuda_setup/main.py:149: UserWarning: WARNING: The following directories listed in your path were found to be non-existent: {PosixPath('/var/slurm/checkpoint')}
+  warn(msg)
+/home/u5273929/.local/lib/python3.7/site-packages/bitsandbytes/cuda_setup/main.py:149: UserWarning: WARNING: The following directories listed in your path were found to be non-existent: {PosixPath('/work/u5273929/hw4/kenlm')}
+  warn(msg)
+/home/u5273929/.local/lib/python3.7/site-packages/bitsandbytes/cuda_setup/main.py:149: UserWarning: WARNING: The following directories listed in your path were found to be non-existent: {PosixPath('1'), PosixPath('1;/opt/ohpc/twcc/modulefiles')}
+  warn(msg)
+/home/u5273929/.local/lib/python3.7/site-packages/bitsandbytes/cuda_setup/main.py:149: UserWarning: WARNING: The following directories listed in your path were found to be non-existent: {PosixPath('1')}
+  warn(msg)
+/home/u5273929/.local/lib/python3.7/site-packages/bitsandbytes/cuda_setup/main.py:149: UserWarning: WARNING: The following directories listed in your path were found to be non-existent: {PosixPath('/run/user/25657/vscode-git-a836d0141a.sock')}
+  warn(msg)
+/home/u5273929/.local/lib/python3.7/site-packages/bitsandbytes/cuda_setup/main.py:149: UserWarning: WARNING: The following directories listed in your path were found to be non-existent: {PosixPath('/work/u5273929/hw4/fairseq')}
+  warn(msg)
+/home/u5273929/.local/lib/python3.7/site-packages/bitsandbytes/cuda_setup/main.py:149: UserWarning: WARNING: The following directories listed in your path were found to be non-existent: {PosixPath('/run/user/25657/vscode-ipc-bde887d5-ea90-4aa5-a43b-81541d0fd628.sock')}
+  warn(msg)
+/home/u5273929/.local/lib/python3.7/site-packages/bitsandbytes/cuda_setup/main.py:149: UserWarning: WARNING: The following directories listed in your path were found to be non-existent: {PosixPath('() {  eval $($LMOD_DIR/ml_cmd "$@")\n}')}
+  warn(msg)
+/home/u5273929/.local/lib/python3.7/site-packages/bitsandbytes/cuda_setup/main.py:149: UserWarning: WARNING: The following directories listed in your path were found to be non-existent: {PosixPath('/usr/local/cuda/lib64')}
+  warn(msg)
+/home/u5273929/.local/lib/python3.7/site-packages/bitsandbytes/cuda_setup/main.py:149: UserWarning: WARNING: No libcudart.so found! Install CUDA or the cudatoolkit package (anaconda)!
+  warn(msg)
+/home/u5273929/.local/lib/python3.7/site-packages/bitsandbytes/cuda_setup/main.py:149: UserWarning: WARNING: Compute capability < 7.5 detected! Only slow 8-bit matmul is supported for your GPU!
+  warn(msg)
+
+===================================BUG REPORT===================================
+Welcome to bitsandbytes. For bug reports, please run
+
+python -m bitsandbytes
+
+ and submit this information together with your error trace to: https://github.com/TimDettmers/bitsandbytes/issues
+================================================================================
+bin /home/u5273929/.local/lib/python3.7/site-packages/bitsandbytes/libbitsandbytes_cpu.so
+False
+CUDA_SETUP: WARNING! libcudart.so not found in any environmental path. Searching in backup paths...
+ERROR: python: undefined symbol: cudaRuntimeGetVersion
+CUDA SETUP: libcudart.so path is None
+CUDA SETUP: Is seems that your cuda installation is not in your path. See https://github.com/TimDettmers/bitsandbytes/issues/85 for more information.
+CUDA SETUP: CUDA version lower than 11 are currently not supported for LLM.int8(). You will be only to use 8-bit optimizers and quantization routines!!
+CUDA SETUP: Highest compute capability among GPUs detected: 7.0
+CUDA SETUP: Detected CUDA version 00
+CUDA SETUP: Loading binary /home/u5273929/.local/lib/python3.7/site-packages/bitsandbytes/libbitsandbytes_cpu.so...
+/lib64/libstdc++.so.6: version `GLIBCXX_3.4.21' not found (required by /home/u5273929/.local/lib/python3.7/site-packages/bitsandbytes/libbitsandbytes_cpu.so)
+CUDA SETUP: Problem: The main issue seems to be that the main CUDA runtime library was not detected.
+CUDA SETUP: Solution 1: To solve the issue the libcudart.so location needs to be added to the LD_LIBRARY_PATH variable
+CUDA SETUP: Solution 1a): Find the cuda runtime library via: find / -name libcudart.so 2>/dev/null
+CUDA SETUP: Solution 1b): Once the library is found add it to the LD_LIBRARY_PATH: export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:FOUND_PATH_FROM_1a
+CUDA SETUP: Solution 1c): For a permanent solution add the export from 1b into your .bashrc file, located at ~/.bashrc
+CUDA SETUP: Solution 2: If no library was found in step 1a) you need to install CUDA.
+CUDA SETUP: Solution 2a): Download CUDA install script: wget https://github.com/TimDettmers/bitsandbytes/blob/main/cuda_install.sh
+CUDA SETUP: Solution 2b): Install desired CUDA version to desired location. The syntax is bash cuda_install.sh CUDA_VERSION PATH_TO_INSTALL_INTO.
+CUDA SETUP: Solution 2b): For example, "bash cuda_install.sh 113 ~/local/" will download CUDA 11.3 and install into the folder ~/local
+Traceback (most recent call last):
+  File "main.py", line 281, in <module>
+    main()    
+  File "main.py", line 55, in main
+    Bot = bot(args)
+  File "/work/u5273929/bias-ppo/bots/alpaca/module.py", line 18, in __init__
+    device_map="auto",
+  File "/home/u5273929/.local/lib/python3.7/site-packages/transformers/modeling_utils.py", line 2642, in from_pretrained
+    from .utils.bitsandbytes import get_keys_to_not_convert, replace_with_bnb_linear
+  File "/home/u5273929/.local/lib/python3.7/site-packages/transformers/utils/bitsandbytes.py", line 10, in <module>
+    import bitsandbytes as bnb
+  File "/home/u5273929/.local/lib/python3.7/site-packages/bitsandbytes/__init__.py", line 6, in <module>
+    from . import cuda_setup, utils, research
+  File "/home/u5273929/.local/lib/python3.7/site-packages/bitsandbytes/research/__init__.py", line 1, in <module>
+    from . import nn
+  File "/home/u5273929/.local/lib/python3.7/site-packages/bitsandbytes/research/nn/__init__.py", line 1, in <module>
+    from .modules import LinearFP8Mixed, LinearFP8Global
+  File "/home/u5273929/.local/lib/python3.7/site-packages/bitsandbytes/research/nn/modules.py", line 8, in <module>
+    from bitsandbytes.optim import GlobalOptimManager
+  File "/home/u5273929/.local/lib/python3.7/site-packages/bitsandbytes/optim/__init__.py", line 6, in <module>
+    from bitsandbytes.cextension import COMPILED_WITH_CUDA
+  File "/home/u5273929/.local/lib/python3.7/site-packages/bitsandbytes/cextension.py", line 27, in <module>
+    and open an issue at: https://github.com/TimDettmers/bitsandbytes/issues''')
+RuntimeError: 
+        CUDA Setup failed despite GPU being available. Please run the following command to get more information:
+
+        python -m bitsandbytes
+
+        Inspect the output of the command and see if you can locate CUDA libraries. You might need to add them
+        to your LD_LIBRARY_PATH. If you suspect a bug, please take the information from python -m bitsandbytes
+        and open an issue at: https://github.com/TimDettmers/bitsandbytes/issues

@@ -1,0 +1,25 @@
+Message from TWCC HPC admin
+-----------------------
+loading miniconda3 with conda 4.8.4/python 3.7
+docs : https://hackmd.io/@kmo/twcc_hpc_conda
+-----------------------
+
+wandb: Currently logged in as: farnhua (chatbot_ntu). Use `wandb login --relogin` to force relogin
+wandb: wandb version 0.15.4 is available!  To upgrade, please run:
+wandb:  $ pip install wandb --upgrade
+wandb: Tracking run with wandb version 0.15.3
+wandb: Run data is saved locally in /work/u5273929/bias-ppo/wandb/run-20230609_140617-1kh5cwr9
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run 0605_gpt-m_ChatGPT_lmlr0.2_innerlr9e-6_gpt4
+wandb: ⭐️ View project at https://wandb.ai/chatbot_ntu/bias_phase1
+wandb: 🚀 View run at https://wandb.ai/chatbot_ntu/bias_phase1/runs/1kh5cwr9
+2023-06-09 14:06:29.195519: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2023-06-09 14:06:31.918059: W tensorflow/compiler/xla/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer.so.7'; dlerror: libnvinfer.so.7: cannot open shared object file: No such file or directory
+2023-06-09 14:06:31.918168: W tensorflow/compiler/xla/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer_plugin.so.7'; dlerror: libnvinfer_plugin.so.7: cannot open shared object file: No such file or directory
+2023-06-09 14:06:31.918184: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Cannot dlopen some TensorRT libraries. If you would like to use Nvidia GPU with TensorRT, please make sure the missing libraries mentioned above are installed properly.
+Special tokens have been added in the vocabulary, make sure the associated word embeddings are fine-tuned or trained.
+[INFO] : Using 4524 data.
+  0%|          | 0/150 [00:00<?, ?it/s]
+  0%|          | 0/40 [00:00<?, ?it/s][A
+None, epoch: 0, score:0.0, loss:0.0:   0%|          | 0/40 [00:00<?, ?it/s][Aslurmstepd: error: *** JOB 481817 ON gn0405 CANCELLED AT 2023-06-09T14:11:04 ***

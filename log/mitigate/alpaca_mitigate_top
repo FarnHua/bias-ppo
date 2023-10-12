@@ -1,0 +1,35 @@
+Message from TWCC HPC admin
+-----------------------
+loading miniconda3 with conda 4.8.4/python 3.7
+docs : https://hackmd.io/@kmo/twcc_hpc_conda
+-----------------------
+
+Message from TWCC HPC admin
+-----------------------
+loading miniconda3 with conda 4.8.4/python 3.7
+docs : https://hackmd.io/@kmo/twcc_hpc_conda
+-----------------------
+
+Message from TWCC HPC admin
+-----------------------
+loading miniconda3 with conda 4.8.4/python 3.7
+docs : https://hackmd.io/@kmo/twcc_hpc_conda
+-----------------------
+
+usage: mitigate.py [-h] [--testfile TESTFILE] [--bot BOT]
+                   [--exp_name EXP_NAME] [--save_path SAVE_PATH] [--seed SEED]
+                   [--top_k TOP_K] [--top_p TOP_P] [--only_ppl ONLY_PPL]
+                   [--demofile DEMOFILE] [--type TYPE] [--demo_num DEMO_NUM]
+mitigate.py: error: argument --demo_num: invalid int value: '1,'
+usage: mitigate.py [-h] [--testfile TESTFILE] [--bot BOT]
+                   [--exp_name EXP_NAME] [--save_path SAVE_PATH] [--seed SEED]
+                   [--top_k TOP_K] [--top_p TOP_P] [--only_ppl ONLY_PPL]
+                   [--demofile DEMOFILE] [--type TYPE] [--demo_num DEMO_NUM]
+mitigate.py: error: argument --demo_num: invalid int value: '2,'
+usage: mitigate.py [-h] [--testfile TESTFILE] [--bot BOT]
+                   [--exp_name EXP_NAME] [--save_path SAVE_PATH] [--seed SEED]
+                   [--top_k TOP_K] [--top_p TOP_P] [--only_ppl ONLY_PPL]
+                   [--demofile DEMOFILE] [--type TYPE] [--demo_num DEMO_NUM]
+mitigate.py: error: argument --demo_num: invalid int value: '3,'
+Loading checkpoint shards:   0%|          | 0/39 [00:00<?, ?it/s]Loading checkpoint shards:   3%|▎         | 1/39 [00:00<00:19,  1.92it/s]Loading checkpoint shards:   5%|▌         | 2/39 [00:01<00:21,  1.72it/s]Loading checkpoint shards:   8%|▊         | 3/39 [00:01<00:22,  1.57it/s]Loading checkpoint shards:  10%|█         | 4/39 [00:02<00:26,  1.32it/s]Loading checkpoint shards:  13%|█▎        | 5/39 [00:03<00:29,  1.13it/s]Loading checkpoint shards:  15%|█▌        | 6/39 [00:04<00:31,  1.05it/s]Loading checkpoint shards:  18%|█▊        | 7/39 [00:06<00:31,  1.02it/s]Loading checkpoint shards:  21%|██        | 8/39 [00:07<00:37,  1.22s/it]Loading checkpoint shards:  23%|██▎       | 9/39 [00:09<00:40,  1.35s/it]Loading checkpoint shards:  26%|██▌       | 10/39 [00:10<00:38,  1.32s/it]Loading checkpoint shards:  28%|██▊       | 11/39 [00:11<00:33,  1.21s/it]Loading checkpoint shards:  31%|███       | 12/39 [00:12<00:29,  1.11s/it]Loading checkpoint shards:  33%|███▎      | 13/39 [00:13<00:27,  1.04s/it]Loading checkpoint shards:  36%|███▌      | 14/39 [00:14<00:27,  1.10s/it]Loading checkpoint shards:  38%|███▊      | 15/39 [00:15<00:26,  1.11s/it]Loading checkpoint shards:  41%|████      | 16/39 [00:17<00:26,  1.15s/it]Loading checkpoint shards:  44%|████▎     | 17/39 [00:18<00:25,  1.18s/it]Loading checkpoint shards:  46%|████▌     | 18/39 [00:19<00:22,  1.06s/it]Loading checkpoint shards:  49%|████▊     | 19/39 [00:19<00:19,  1.03it/s]Loading checkpoint shards:  51%|█████▏    | 20/39 [00:20<00:16,  1.13it/s]Loading checkpoint shards:  54%|█████▍    | 21/39 [00:21<00:14,  1.22it/s]Loading checkpoint shards:  56%|█████▋    | 22/39 [00:21<00:12,  1.34it/s]Loading checkpoint shards:  59%|█████▉    | 23/39 [00:22<00:11,  1.43it/s]Loading checkpoint shards:  62%|██████▏   | 24/39 [00:22<00:10,  1.45it/s]Loading checkpoint shards:  64%|██████▍   | 25/39 [00:23<00:09,  1.41it/s]Loading checkpoint shards:  67%|██████▋   | 26/39 [00:24<00:09,  1.41it/s]Loading checkpoint shards:  69%|██████▉   | 27/39 [00:25<00:08,  1.39it/s]Loading checkpoint shards:  72%|███████▏  | 28/39 [00:25<00:08,  1.37it/s]Loading checkpoint shards:  74%|███████▍  | 29/39 [00:26<00:07,  1.40it/s]Loading checkpoint shards:  77%|███████▋  | 30/39 [00:27<00:06,  1.40it/s]Loading checkpoint shards:  79%|███████▉  | 31/39 [00:27<00:05,  1.46it/s]Loading checkpoint shards:  82%|████████▏ | 32/39 [00:28<00:04,  1.41it/s]Loading checkpoint shards:  85%|████████▍ | 33/39 [00:29<00:04,  1.40it/s]Loading checkpoint shards:  87%|████████▋ | 34/39 [00:30<00:03,  1.41it/s]Loading checkpoint shards:  90%|████████▉ | 35/39 [00:30<00:02,  1.37it/s]Loading checkpoint shards:  92%|█████████▏| 36/39 [00:31<00:02,  1.45it/s]Loading checkpoint shards:  95%|█████████▍| 37/39 [00:32<00:01,  1.31it/s]Loading checkpoint shards:  97%|█████████▋| 38/39 [00:32<00:00,  1.43it/s]Loading checkpoint shards: 100%|██████████| 39/39 [00:33<00:00,  1.60it/s]Loading checkpoint shards: 100%|██████████| 39/39 [00:33<00:00,  1.17it/s]
+  0%|          | 0/1000 [00:00<?, ?it/s]slurmstepd: error: *** JOB 488612 ON gn0513 CANCELLED AT 2023-07-05T15:04:31 ***

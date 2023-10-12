@@ -24,7 +24,7 @@ import random
 
 import numpy as np
 import torch
-from seqeval.metrics import accuracy_score
+# from seqeval.metrics import accuracy_score
 from torch.nn import CrossEntropyLoss
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler, TensorDataset
 from torch.utils.data.distributed import DistributedSampler
@@ -321,7 +321,7 @@ def evaluate(args, model, tokenizer, labels, pad_token_label_id, mode, prefix=""
 
 	results = {
 		"loss": eval_loss,
-		"accuracy": accuracy_score(out_label_list, preds_list),
+		"accuracy": 0.0 #accuracy_score(out_label_list, preds_list),
 	}
 
 	logger.info("***** Eval results %s *****", prefix)

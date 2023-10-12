@@ -1,7 +1,3 @@
-* Download regard_v3 (https://reurl.cc/Gep9yy) to this directory.
-        
-
-     
-        ./run_reply.sh
-        ./eval.sh
-        ./analyze.sh
+1. ./run_reply.sh
+2. ./eval.sh
+3. ./analyze.sh

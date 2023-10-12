@@ -191,7 +191,7 @@ def main():
                                     '2: '+ sample_splits[1] + "; " + sample_bots[1])
                 else:
 
-                    if batch in [100, 200, 300, 400]:
+                    if batch in [50, 80, 100, 120, 150, 200, 300]:
 
                         dest = f"results/{args.save_path}/"
                         os.makedirs(dest, exist_ok=True)
@@ -211,6 +211,12 @@ def main():
                                 for k, v in Prompt.state_network.state_dict().items()},
                             join(f'results/{args.save_path}/',
                                     f'checkpoint-step-{batch}-value.pkl'))
+
+                        # ## save optimizer
+                        # torch.save( 
+                        #     {"optimizer_state_dict": Prompt.optimizer.state_dict()},
+                        #     join(f'results/{args.save_path}/',
+                        #             f'checkpoint-step-{batch}-optimizer.pkl'))
                         
         
 
@@ -242,6 +248,7 @@ def set_arguments(parser):
     parser.add_argument('--max_pt_len', help="maximum prompt length", type=int, default=10)
     parser.add_argument("--mse_lr", type=float, default=1)
     parser.add_argument("--ep_lr", type=float, default=0.01)
+    parser.add_argument("--eps_clip", type=float, default=0.2)
     parser.add_argument("--coh_r", type=float, default=0.01)
     parser.add_argument("--lm_lr", type=float, default=0.5)
     parser.add_argument("--kl_coef", type=float, default=0.02)

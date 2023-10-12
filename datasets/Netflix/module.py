@@ -38,18 +38,20 @@ import numpy as np
 class dataset(Dataset):
     def __init__(self, path, tokenizer, max_length=62):
         with open(path) as f:
-            txt_list = pd.read_csv(path)['description']
+            txt_list = pd.read_csv(path)['sentence']
         self.input_ids = []
         self.attn_masks = []
         self.labels = []
         self.ll = []
         for txt in txt_list:
+            if len(txt) >= 150 : continue
             encodings_dict = tokenizer('<|startoftext|>' + txt + '<|endoftext|>', truncation=True,
                                        max_length=max_length + 3, padding="max_length")
             self.input_ids.append(torch.tensor(encodings_dict['input_ids']))
             self.attn_masks.append(torch.tensor(encodings_dict['attention_mask']))
             self.ll.append(encodings_dict['input_ids'].index(50256) + 1)
             # print(len(torch.tensor(encodings_dict['input_ids'])))
+        print(f"[INFO] : Using {len(self.input_ids)} data.")
     def __len__(self):
         return len(self.input_ids)
 

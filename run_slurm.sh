@@ -94,3 +94,5 @@ done
 #                         --save_interval 20 \
 #                         --wandb online
 # done
+
+# main.py --mode finetune --prompt GPT2 --agent ppo_ptx_kl --dataset Netflix --model gpt2-medium --bot blenderbot --type bias --exp_name kl_dis_1_nt_20_0.02_5e-6-blender_medium_ppo_ipx --log_interval 25 --seed 1 --kl_coef 0.02 --bz 8 --k_epoch 5 --discount_r 1.0 --end_batch 1040 --sample_time 8 --max_pt_len 20 --tags inner-lr --inner_lr 5e-6 --init_step 2 --save_path kl_dis_1_nt_20_0.02_5e-6-blender_medium_ppo_ipx --save_interval 20 --ep_lr 1.0 --lm_lr 0.2 --wandb online

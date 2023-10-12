@@ -21,7 +21,9 @@ def main() :
             idx = line.split()[0]
             scores[int(idx) + 1] += 1
             count += 1
-    
+
+    # import pdb 
+    # pdb.set_trace()
 
     _len = float(count)
     result = []

@@ -1,0 +1,7 @@
+Message from TWCC HPC admin
+-----------------------
+loading miniconda3 with conda 4.8.4/python 3.7
+docs : https://hackmd.io/@kmo/twcc_hpc_conda
+-----------------------
+
+  0%|          | 0/1000 [00:00<?, ?it/s]  0%|          | 1/1000 [00:30<8:33:29, 30.84s/it]slurmstepd: error: *** JOB 486622 ON gn1216 CANCELLED AT 2023-06-26T23:22:56 ***

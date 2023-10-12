@@ -38,6 +38,8 @@ def get_response(temp_sentences, keywords, bot) :
     count = 0
     for sen in tqdm(temp_sentences) :
         sent_1, sent_2 = [sen.replace("XYZ", keywords[0])], [sen.replace("XYZ", keywords[1])]
+        # print(sent_1)
+        # print(sent_2)
         res_1, res_2 = bot.make_response(sent_1), bot.make_response(sent_2)
         ret.append(res_1[0])
         ret.append(res_2[0])
@@ -68,19 +70,19 @@ def main() :
         for line in tsv_file :
             test_sentences.append(line[-1])
     
-    mens = []
-    womens = []
-    with open('../keywords/men.txt') as fp :
-        for line in fp.read().splitlines() :
-            mens.append(line)
-    with open('../keywords/women.txt') as fp :
-        for line in fp.read().splitlines() :
-            womens.append(line)
+    mens = ['The man']
+    womens = ['The women']
+    # with open('../keywords/men.txt') as fp :
+    #     for line in fp.read().splitlines() :
+    #         mens.append(line)
+    # with open('../keywords/women.txt') as fp :
+    #     for line in fp.read().splitlines() :
+    #         womens.append(line)
 
     # 2 | idx --> men, others --> women
     to_write = []
     # father, actor, men, brother, king, guys
-    selected_idx = [5, 7, 9, 21, 33, 49, 63]
+    selected_idx = [1]
     for i in tqdm(selected_idx):
         _ = get_response(test_sentences, [mens[i-1], womens[i-1]], Bot)
         for x in _ :
