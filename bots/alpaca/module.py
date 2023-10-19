@@ -15,9 +15,9 @@ class bot(nn.Module):
             "chainyo/alpaca-lora-7b",
             # load_in_8bit=True,
             torch_dtype=torch.float16,
-            # device_map="auto",
+            device_map="auto",
         )
-        self.lm.to(self.device)
+        # self.lm.to(self.device)
         # print(self.lm.device)
         # import pdb
         # pdb.set_trace()
@@ -56,12 +56,11 @@ class bot(nn.Module):
             for i in range(len(prefix_sentences)):
                 prompt = self.generate_prompt(prefix_sentences[i], None)
                 input_ids = self.tokenizer(prompt, return_tensors="pt").input_ids
-                input_ids = input_ids.to("cuda:1")
-<<<<<<< HEAD
+                input_ids = input_ids.to("cuda")
+
                 # self.lm.to("cuda:1")
-=======
-                self.lm.to("cuda:1")
->>>>>>> 988592ebf42c847c0691f0480b97447926b630a1
+                # self.lm.to("cuda:1")
+
                 # print("\n\n\n")
                 # print(f"alpaca.device : {self.lm.device}")
                 # print(f"inputs_id.device : {input_ids.device}")
@@ -74,10 +73,8 @@ class bot(nn.Module):
                     generation_config=self.generation_config,
                     return_dict_in_generate=True,
                     output_scores=True,
-<<<<<<< HEAD
+
                     max_new_tokens=30
-=======
->>>>>>> 988592ebf42c847c0691f0480b97447926b630a1
                 )
                 response = self.tokenizer.decode(outputs.sequences[0], skip_special_tokens=True)
                 response = response.split("Response:")[-1].replace('\n', '').strip()
