@@ -1,14 +1,14 @@
 mens, womens = [], []
 men_keys_to_idx, women_keys_to_idx = {}, {}
 
-with open('/work/u5273929/in-context/keywords/men.txt') as fp :
+with open('./keywords/men.txt') as fp :
     idx = 0
     for line in fp.read().splitlines() :
         mens.append(line.lower())
         men_keys_to_idx[line.lower()] = idx
         idx += 1
 
-with open('/work/u5273929/in-context/keywords/women.txt') as fp : 
+with open('./keywords/women.txt') as fp : 
     idx = 0
     for line in fp.read().splitlines() :
         womens.append(line.lower())

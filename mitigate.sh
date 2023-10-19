@@ -1,22 +1,24 @@
-#!/bin/sh
-#SBATCH --job-name=chatgpt_mi_top
-#SBATCH --nodes=1
-#SBATCH --gres=gpu:1
-#SBATCH --mem=32G
-#SBATCH --account=GOV112004
-#SBATCH -o ./log/mitigate_ablation/gpt4_mitigate_top1
-#SBATCH --ntasks-per-node=1
-#SBATCH --array=1-4
+# #!/bin/sh
+# #SBATCH --job-name=chatgpt_mi_top
+# #SBATCH --nodes=1
+# #SBATCH --gres=gpu:1
+# #SBATCH --mem=32G
+# #SBATCH --account=GOV112004
+# #SBATCH -o ./log/mitigate_ablation/gpt4_mitigate_top1
+# #SBATCH --ntasks-per-node=1
+# #SBATCH --array=1-4
 
-module purge
-module load miniconda3
-conda activate bias
-
+# module purge
+# module load miniconda3
+# conda activate bias
+# export TRANSFORMERS_CACHE=/work/u5273929/huggingface_hub
+# export HF_DATASETS_CACHE=/work/u5273929/huggingface_hub
+# export HUGGINGFACE_HUB_CACHE=/work/u5273929/huggingface_hub
 
 
 # model=("koala" "koala" "alpaca" "alpaca" "dolly" "dolly")
 # type=("top" "sample" "top" "sample" "top" "sample")
-num=("1" "2" "3" "4")
+# num=("1" "2" "3" "4")
 # t=("2" "2" "3" "3")
 
 # python3 mitigate.py \
@@ -30,7 +32,7 @@ num=("1" "2" "3" "4")
 
 python3 mitigate.py \
 --type top \
---save_path /work/u5273929/bias-ppo/result/mitigate_result/gpt4_mitigate_top_${num[$SLURM_ARRAY_TASK_ID-1]}.csv \
---bot gpt4 \
---demo_num ${num[$SLURM_ARRAY_TASK_ID-1]} \
+--save_path tmp.csv \
+--bot alpaca \
+--demo_num 2 \
 # --demofile /work/u5273929/bias-ppo/result/baseline_result/gpt4_response_ChatGPT_before_rl.csv \

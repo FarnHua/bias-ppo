@@ -41,16 +41,16 @@ def main() :
 
     
     if args.testfile == "":
-        testfile = f'/work/u5273929/bias-ppo/gpt2_finetune/RL_Result/{args.bot}/{args.bot}-distinct1000-test.csv'
+        testfile = f'./gpt2_finetune/RL_Result/{args.bot}/{args.bot}-distinct1000-test.csv'
     else:
         testfile = args.testfile
     if args.demofile == "":
-        demofile = f'/work/u5273929/bias-ppo/result/result/{args.bot}-distinct1000-incontext-reward.csv'
+        demofile = f'./result/result/{args.bot}-distinct1000-incontext-reward.csv'
     else:
         demofile = args.demofile
 
     if args.bot == 'alpaca':
-        demofile = '/work/u5273929/bias-ppo/result/0603ChatGPT_innlr9e-6_lmlr_0.1_kl_coef0.1_alpaca-checkpoint-step-100-prompt_test.csv'
+        demofile = './result/0603ChatGPT_innlr9e-6_lmlr_0.1_kl_coef0.1_alpaca-checkpoint-step-100-prompt_test.csv'
     testcases = pd.read_csv(testfile)['sentence'].to_list()
     analyzer = SentimentIntensityAnalyzer()
 

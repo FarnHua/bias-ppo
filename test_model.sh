@@ -13,9 +13,9 @@
 # module purge
 # module load miniconda3
 # conda activate bias
-# export TRANSFORMERS_CACHE=/work/u5273929/huggingface_hub
-# export HF_DATASETS_CACHE=/work/u5273929/huggingface_hub
-# export HUGGINGFACE_HUB_CACHE=/work/u5273929/huggingface_hub
+export TRANSFORMERS_CACHE=/work/u5273929/huggingface_hub
+export HF_DATASETS_CACHE=/work/u5273929/huggingface_hub
+export HUGGINGFACE_HUB_CACHE=/work/u5273929/huggingface_hub
 
 # python3 test.py \
 # --prompt_path /work/u5273929/bias-ppo/gpt2_finetune/RL_Result/ChatGPT/0605_gpt-m_ChatGPT_lmlr0.2_innerlr9e-6_chat-conti_checkpoint-step-100_temp12.csv \
