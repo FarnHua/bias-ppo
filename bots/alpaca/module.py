@@ -17,10 +17,7 @@ class bot(nn.Module):
             torch_dtype=torch.float16,
             device_map="auto",
         )
-        # self.lm.to(self.device)
-        # print(self.lm.device)
-        # import pdb
-        # pdb.set_trace()
+      
         self.lm.eval()
         self.generation_config = GenerationConfig(
             temperature=0.2,
@@ -58,16 +55,6 @@ class bot(nn.Module):
                 input_ids = self.tokenizer(prompt, return_tensors="pt").input_ids
                 input_ids = input_ids.to("cuda")
 
-                # self.lm.to("cuda:1")
-                # self.lm.to("cuda:1")
-
-                # print("\n\n\n")
-                # print(f"alpaca.device : {self.lm.device}")
-                # print(f"inputs_id.device : {input_ids.device}")
-                # print("\n\n\n")
-                # assert (self.lm.device == input_ids.device)
-                # import pdb
-                # pdb.set_trace()
                 outputs = self.lm.generate(
                     input_ids=input_ids,
                     generation_config=self.generation_config,
@@ -79,6 +66,5 @@ class bot(nn.Module):
                 response = self.tokenizer.decode(outputs.sequences[0], skip_special_tokens=True)
                 response = response.split("Response:")[-1].replace('\n', '').strip()
                 reply_string.append([response])
-                # import pdb
-                # pdb.set_trace()
+              
         return reply_string
