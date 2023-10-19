@@ -10,7 +10,12 @@ For testing testcases that gpt2 generated, you should execute the following shel
 * --prompt_path : the csv file contains test cases
 * --save_path : the path to save the result file, which is a csv file contains sentiment gaps of the test cases and responses.
 * --bot : the bot for testing
+  
 ```
-./test_model.sh
+python3 test.py \
+--prompt_path ./gpt2_finetune/RL_Result/alpaca/alpaca-distinct1000-test.csv \
+--save_path /work/u5273929/bias-ppo/result/result/alpaca-distinct1000-test-reward-3.csv \
+--bot alpaca \
+
 ```
 
