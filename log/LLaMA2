@@ -1,0 +1,33 @@
+Message from TWCC HPC admin
+-----------------------
+loading miniconda3 with conda 4.8.4/python 3.7
+docs : https://hackmd.io/@kmo/twcc_hpc_conda
+-----------------------
+
+wandb: Currently logged in as: farnhua (chatbot_ntu). Use `wandb login --relogin` to force relogin
+wandb: wandb version 0.15.12 is available!  To upgrade, please run:
+wandb:  $ pip install wandb --upgrade
+wandb: Tracking run with wandb version 0.13.7
+wandb: Run data is saved locally in /work/u5273929/tmp/bias-ppo/wandb/run-20231021_014518-2k42bmsm
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run 1021_LLaMA2_lmlr0.1_innerlr9e-6_kl0.01
+wandb: ⭐️ View project at https://wandb.ai/chatbot_ntu/bias_phase1
+wandb: 🚀 View run at https://wandb.ai/chatbot_ntu/bias_phase1/runs/2k42bmsm
+2023-10-21 01:45:29.652358: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2023-10-21 01:45:36.639376: W tensorflow/compiler/xla/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer.so.7'; dlerror: libnvinfer.so.7: cannot open shared object file: No such file or directory
+2023-10-21 01:45:36.639542: W tensorflow/compiler/xla/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer_plugin.so.7'; dlerror: libnvinfer_plugin.so.7: cannot open shared object file: No such file or directory
+2023-10-21 01:45:36.639566: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Cannot dlopen some TensorRT libraries. If you would like to use Nvidia GPU with TensorRT, please make sure the missing libraries mentioned above are installed properly.
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 1/2 [00:15<00:15, 15.29s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:20<00:00,  9.61s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:20<00:00, 10.46s/it]
+Traceback (most recent call last):
+  File "/work/u5273929/tmp/bias-ppo/main.py", line 281, in <module>
+    main()
+  File "/work/u5273929/tmp/bias-ppo/main.py", line 58, in main
+    Dataset = dataset(args.path, Prompt.tokenizer)
+  File "/work/u5273929/tmp/bias-ppo/datasets/ChatGPT/module.py", line 11, in __init__
+    with open(path) as f:
+FileNotFoundError: [Errno 2] No such file or directory: '/work/u5273929/bias-ppo-br/bias-ppo/gpt2_finetune/pretrain_data/ChatGPT.csv'
+wandb: Waiting for W&B process to finish... (failed 1). Press Control-C to abort syncing.
+wandb: - 0.006 MB of 0.011 MB uploaded (0.000 MB deduped)wandb: \ 0.011 MB of 0.011 MB uploaded (0.000 MB deduped)wandb: Synced 1021_LLaMA2_lmlr0.1_innerlr9e-6_kl0.01: https://wandb.ai/chatbot_ntu/bias_phase1/runs/2k42bmsm
+wandb: Synced 6 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20231021_014518-2k42bmsm/logs
