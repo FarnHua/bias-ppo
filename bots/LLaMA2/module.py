@@ -52,7 +52,6 @@ class bot(nn.Module):
                 response = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
                    
                 response = response.split(prompt)[-1].replace('\n', ' ').strip()
-                print( prefix_sentences[i], response)
                 reply_string.append([response])
               
         return reply_string
