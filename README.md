@@ -7,6 +7,9 @@ Overview
 
 ### Training 
 For training the Reinforcement Learning to provoke bias in LLMs, you should run the following script.
+* --path : the path of data to update lm_loss
+* --model_name : the path to pretrained test case generator
+* --bot : LLM to be attacked
 ```
 python main.py \
   --mode finetune \
