@@ -14,3 +14,4 @@ vaderSentiment==3.3.2
 openai==0.26.4
 accelerate==0.23.0
 detoxify
+google-api-python-client
