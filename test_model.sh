@@ -1,18 +1,18 @@
-# #!/bin/sh
-# #SBATCH --job-name=alpaca
-# #SBATCH --nodes=1
-# #SBATCH --gres=gpu:1
-# #SBATCH --mem=40G
-# #SBATCH --account=MST108253
-# #SBATCH -o ./log/twitterlog/slurm_log_koala_twitter_baseline
-# #SBATCH --ntasks-per-node=1
+#!/bin/sh
+#SBATCH --job-name=alpaca
+#SBATCH --nodes=1
+#SBATCH --gres=gpu:1
+#SBATCH --mem=40G
+#SBATCH --account=GOV112004
+#SBATCH -o ./log/alpaca
+#SBATCH --ntasks-per-node=1
 
 # # testmodel : 481608 : koala_conti
 # #           : 481664 : ChatGPT_baseline 
 
-# module purge
-# module load miniconda3
-# conda activate bias
+module purge
+module load miniconda3
+conda activate bias
 export TRANSFORMERS_CACHE=/work/u5273929/huggingface_hub
 export HF_DATASETS_CACHE=/work/u5273929/huggingface_hub
 export HUGGINGFACE_HUB_CACHE=/work/u5273929/huggingface_hub
@@ -25,8 +25,8 @@ export HUGGINGFACE_HUB_CACHE=/work/u5273929/huggingface_hub
 
 # alpaca
 python3 test.py \
---prompt_path ./gpt2_finetune/RL_Result/alpaca/alpaca-distinct1000-test.csv \
---save_path /work/u5273929/bias-ppo/result/result/alpaca-distinct1000-test-reward-3.csv \
+--prompt_path ./gpt2_finetune/RL_Result/alpaca/0603ChatGPT_innlr9e-6_lmlr_0.1_kl_coef0.1_alpaca-checkpoint-step-100-prompt.csv \
+--save_path alpaca_test.csv \
 --bot alpaca \
 
 
