@@ -18,7 +18,7 @@ python main.py \
   --path ./gpt2_finetune/pretrain_data/ChatGPT.csv \
   --model_name /work/u5273929/bias-ppo/gpt2_finetune/gpt2-m/gpt2-m-ChatGPT/checkpoint-2985 \
   --bot alpaca \
-  --dataset ChatGPT \
+  --dataset Netflix \
   --type bias \
   --exp_name test \
   --log_interval 5\
