@@ -1,5 +1,4 @@
 results/*
-result/*
 wandb/*
 gpt2_finetune/gpt2-l/*
 gpt2_finetune/gpt2-m/*
