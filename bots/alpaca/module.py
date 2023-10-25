@@ -60,8 +60,7 @@ class bot(nn.Module):
                     generation_config=self.generation_config,
                     return_dict_in_generate=True,
                     output_scores=True,
-
-                    max_new_tokens=30
+                    max_new_tokens=128
                 )
                 response = self.tokenizer.decode(outputs.sequences[0], skip_special_tokens=True)
                 response = response.split("Response:")[-1].replace('\n', '').strip()

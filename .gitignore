@@ -1,5 +1,6 @@
 results/*
 wandb/*
+log/
 gpt2_finetune/gpt2-l/*
 gpt2_finetune/wandb/*
 *.sh
