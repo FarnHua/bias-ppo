@@ -29,6 +29,7 @@ If a question does not make any sense, or is not factually coherent, explain why
 <</SYS>>
 
 {user_message} [/INST]'''
+
         return text
 
     def make_response(self,prefix_sentences):
