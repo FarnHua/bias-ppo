@@ -1,109 +1,125 @@
-import numpy as np
 import torch
-import random
-import argparse
-import importlib
+from torch import nn
+from transformers import GPT2LMHeadModel, GPT2Tokenizer
 from tqdm import tqdm
-import shutil
-from pathlib import Path
-from argparse import ArgumentParser
-import os
-from argparse import Namespace
-import warnings
-from os.path import join
-import json
-from utils import *
 import pandas as pd
-from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+from argparse import ArgumentParser
+import random
 
-warnings.simplefilter(action='ignore', category=FutureWarning)
-
-def main():
-    
-    # replace yaml default argument to argparser arg. 
-    parser = ArgumentParser()
-    args  = set_arguments(parser)
-
-    fix_seed(args)
-    
-    args.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
-    bot = importlib.import_module(".module",f"bots.{args.bot}").bot
-    Bot = bot(args)
-
-    analyzer = SentimentIntensityAnalyzer()
-
-    sentences = pd.read_csv(args.prompt_path)['sentence'].to_list()
-
-    if args.only_ppl == 1 :
-        result = []
-        for sens in tqdm(sentences) :
-            # print(len(sens), '\n\n')
-            if args.bot == 'blenderbot' :
-                if len(sens) >= 128 : sens = sens[:128]
-            # import pdb
-            # pdb.set_trace()
-            res = Bot.make_response([sens])
-            
-            result.append(res[0][0])
-            # if len(result) >= 10 : break 
-        df = pd.DataFrame(result, columns=['sentence'])
-        df.to_csv(args.save_path)
-
-    # print(df)
-    # sentences = df['0'][1:].tolist()
-    else : 
-        result = []
-        scores = []
-        count = 0
-        for sens in tqdm(sentences) :
-            # sens = sens + '</s> <s>'
-            
-            if args.bot == 'blenderbot' :
-                if len(sens) >= 128 : sens = sens[:128]
-            score, re_sen, re_res = bias_reward([sens], Bot, analyzer)
-            # import pdb
-            # pdb.set_trace()
-            if re_res[0][0] == 'none' : continue
-            # import pdb
-            # pdb.set_trace()
-            tmp = [score[0], re_sen[0][0], re_sen[0][1], re_res[0][0], re_res[0][1]]
-            scores.append(score[0])
-            result.append(tmp)
-            # if len(result) >= 10 : break
-        
-        score = np.array(score)
-        print(f"Average score is {np.mean(scores)}.")
-        df = pd.DataFrame(result, columns=['score', 'send_1', 'send_2', 'response_1', 'response_2'])
-        # if not os.path.exists('result') :
-        #     os.mkdir('result')
-        df.to_csv(args.save_path)
-        
-            
 
 
 def set_arguments(parser):
-    parser.add_argument("--prompt_path", type=str, default="") 
-    parser.add_argument("--bot", type=str, default="example")
-    parser.add_argument("--exp_name", type=str, default="")
-    parser.add_argument("--save_path", type=str, default="result.csv") # save path
-    parser.add_argument("--seed", type=int, default=100)
-    parser.add_argument('--top_k', type=int, default=50)
-    parser.add_argument('--top_p', type=float, default=.9)
-    parser.add_argument('--only_ppl', type=int, default=0)
-    
-
+    # parser.add_argument("--model", type=str, default="none") # for finetune task
+    parser.add_argument('--model_path', type=str, default=None)
+    parser.add_argument('--save_path', type=str, default=None)
+    parser.add_argument('--bot', type=str, default=None)
     args = parser.parse_args()
 
     return args
 
-def fix_seed(args):
-    np.random.seed(args.seed)
-    torch.random.manual_seed(args.seed)
-    torch.cuda.manual_seed(args.seed)
-    random.seed(args.seed)
 
-    return
 
-if __name__ == "__main__":
-    main()    
+parser = ArgumentParser()
+args  = set_arguments(parser)
+
+dest=f"./RL_Result/{args.bot}"
+import os
+os.makedirs(dest, exist_ok=True)
+
+# model_path = '../../../finetune_gpt/neo_wo_ds/gpt2-l/gpt2-l-2000/checkpoint-500'
+# model_path_1 = "/work/u5273929/bias-ppo/gpt2_finetune/gpt2-l/gpt2-l-Netflix/checkpoint-2985"
+model_path = args.model_path
+torch.manual_seed(42)
+device = 'cuda'
+# tokenizer = GPT2Tokenizer.from_pretrained("gpt2-large", bos_token='<|startoftext|>',eos_token='<|endoftext|>', pad_token='<|pad|>') 
+tokenizer = GPT2Tokenizer.from_pretrained("gpt2-medium", bos_token='<|startoftext|>', eos_token='<|endoftext|>', pad_token='<|pad|>')
+model = GPT2LMHeadModel.from_pretrained("gpt2-medium")
+model.resize_token_embeddings(len(tokenizer))
+
+# params = model.state_dict()
+# for k, v in params.items():
+#     print(k)
+# model.resize_token_embeddings(len(tokenizer))
+
+# ckpt = torch.load(model_path)
+# print("="*10)
+# for k, v in ckpt.items():
+#     print(k)
+
+model.load_state_dict(torch.load(model_path), strict=False)
+model.to(device)
+model.eval()
+
+# train_set = pd.read_csv('/work/u5273929/bias-ppo-br/bias-ppo/gpt2_finetune/lmlr03_ChatGPT2000_temp15.csv')['sentence']
+
+
+results = {}
+for i in tqdm(range(2000)) :
+    prompt = ("<|startoftext|>")
+    input_ids = tokenizer(prompt, return_tensors="pt").input_ids.cuda()
+    flag = True
+    while flag:
+        gen_tokens = model.generate(
+            input_ids,
+            do_sample=True,
+            temperature=1.2,
+            max_length=30,
+            bos_token_id=tokenizer.bos_token_id,
+            pad_token_id=tokenizer.pad_token_id,
+            eos_token_id=tokenizer.eos_token_id,
+            num_return_sequences=1
+        )
+        gen_text = tokenizer.batch_decode(gen_tokens, skip_special_tokens=True) 
+        # print(gen_text[0].strip())
+        if gen_text[0].strip() not in results: 
+            results[gen_text[0].strip()] = 1
+            flag = False
+    # next_flag = True
+    # print(gen_text)
+    # print("=" * 100)
+    # while next_flag == True : 
+    #     print("input for next")
+    #     _ = input()
+    #     if _ == "n" : next_flag = False
+
+# df = pd.DataFrame(result, columns=['sentence'])
+# df.to_csv("./RL_Result/gpt4/0605_gpt-m_ChatGPT_lmlr0.2_innerlr9e-6_gpt4-conti-checkpoint-step-80-prompt.csv")
+
+# while len(results) <= 2000 :
+
+#     print(len(results))
+#     prompt = (
+#         "<|startoftext|>"
+#     )
+
+#     input_ids = tokenizer(prompt, return_tensors="pt").input_ids.cuda()
+#     gen_tokens = model.generate(
+#         input_ids,
+#         do_sample=True,
+#         temperature=1.2,
+#         max_length=30,
+#         bos_token_id=tokenizer.bos_token_id,
+#         pad_token_id=tokenizer.pad_token_id,
+#         eos_token_id=tokenizer.eos_token_id,
+#         num_return_sequences=1
+#     )
+#     gen_text = tokenizer.batch_decode(gen_tokens, skip_special_tokens=True)
+#     for i in range(len(gen_text)):
+#         # print(f"{len(results)}: {gen_text[i]}")
+#         if gen_text[i] not in results: 
+#             results.append(gen_text[i])
+#             # print(len(results))
+results = list(results.keys())
+random.shuffle(results)
+
+test_data = results[:1000]
+incontext_data = results[1000:-1]
+df_test = pd.DataFrame(test_data, columns=['sentence'])
+
+
+df_test.to_csv(f"{dest}/{args.bot}-distinct1000-test.csv")
+
+df_incontext = pd.DataFrame(incontext_data, columns=['sentence'])
+df_incontext.to_csv(f"{dest}/{args.bot}-distinct1000-incontext.csv")
+
+print('done')
