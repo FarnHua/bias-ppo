@@ -5,19 +5,21 @@ Modified from https://github.com/pohanchi/blackboxbot
 Overview
 ---
 
+## Baseline
+## RL
 ### Training 
 For training the Reinforcement Learning to provoke bias in LLMs, you should run the following script.
-* --path : the path of data to update lm_loss
-* --model_name : the path to pretrained test case generator
-* --bot : LLM to be attacked
+* `--path : the path of data to update lm_loss`
+* `--model_name : the path to pretrained test case generator`
+* `--bot : LLM to be attacked`
 ```
 python main.py \
   --mode finetune \
   --prompt GPT2 \
   --agent ppo_ptx_kl \
-  --path ./gpt2_finetune/pretrain_data/ChatGPT.csv \
-  --model_name /work/u5273929/bias-ppo/gpt2_finetune/gpt2-m/gpt2-m-ChatGPT/checkpoint-2985 \
-  --bot alpaca \
+  --path <PRETRAIN DATASET> \
+  --model_name <MODEL TO TRAIN> \
+  --bot <BOT> \
   --dataset Netflix \
   --type bias \
   --exp_name test \
@@ -39,18 +41,27 @@ python main.py \
   --wandb disabled
 
 ```
+### Generate testcases
+* `--model_path : finetuned gpt2 checkpoint path`
+* `--bot : LLM which is attacked`
 
-### Testing Results
+```
+python3 test.py \
+  --model_path <YOUR MODEL CKPT> \
+  --bot <BOT> \
+```
+
+### Test Results
 For testing testcases that gpt2 generated, you should execute the following script. 
-* --prompt_path : the csv file contains test cases
-* --save_path : the path to save the result file, which is a csv file contains sentiment gaps of the test cases and responses.
-* --bot : the bot for testing
+* `--prompt_path : the csv file contains test cases`
+* `--save_path : the path to save the result file, which is a csv file contains sentiment gaps of the test cases and responses.`
+* `--bot : the bot for testing`
   
 ```
 python3 test.py \
 --prompt_path ./gpt2_finetune/RL_Result/alpaca/alpaca-distinct1000-test.csv \
 --save_path /work/u5273929/bias-ppo/result/result/alpaca-distinct1000-test-reward-3.csv \
 --bot alpaca \
-
 ```
+## Mitigation
 
