@@ -1,16 +1,4 @@
-#!/bin/sh
-#SBATCH --job-name=gpt4
-#SBATCH --partition=gpNCHC_LLM
-#SBATCH --nodes=1
-#SBATCH --gres=gpu:1
-#SBATCH --mem=32G
-#SBATCH --account=GOV112004
-#SBATCH -o ./log/GPT4-rl-score
-#SBATCH --ntasks-per-node=4
 
-module purge
-module load miniconda3
-conda activate bias
 
 
 # ChatGPT
@@ -33,7 +21,6 @@ conda activate bias
 
 
 # GPT4
-export OPENAI_API_KEY=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
 python3 score.py \
 --prompt_path /work/u5273929/tmp/bias-ppo/RL_Result/GPT4/GPT4-distinct1000-test.csv \
 --save_path /work/u5273929/tmp/bias-ppo/Score_Result/GPT4/GPT4_test.csv \
