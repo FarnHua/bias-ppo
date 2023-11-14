@@ -116,10 +116,9 @@ test_data = results[:1000]
 incontext_data = results[1000:-1]
 df_test = pd.DataFrame(test_data, columns=['sentence'])
 
-
-df_test.to_csv(f"{dest}/{args.bot}-distinct1000-test.csv")
+df_test.to_csv(os.path.join(dest, args.bot+'-distinct1000-test.csv'))
 
 df_incontext = pd.DataFrame(incontext_data, columns=['sentence'])
-df_incontext.to_csv(f"{dest}/{args.bot}-distinct1000-incontext.csv")
+df_incontext.to_csv(os.path.join(dest, args.bot+'-distinct1000-incontext.csv'))
 
 print('done')
