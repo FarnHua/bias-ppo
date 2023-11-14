@@ -22,6 +22,8 @@ class bot(nn.Module):
         self.generation_config = GenerationConfig(
             do_sample=False,
             max_new_tokens=128,
+            top_p=0.9,
+            temperature=0.6,
         )
     def generate_prompt(self, system_prompt: str, user_message: str = None) -> str:
         text = f'''[INST] <<SYS>>

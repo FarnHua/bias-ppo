@@ -49,12 +49,12 @@ class prompt(base):
             self.tokenizer.pad_token = self.tokenizer.eos_token
             self.model = GPT2LMHeadModel.from_pretrained(config.model_name)
             self.model_demo = GPT2LMHeadModel.from_pretrained(config.model_name)
-            # self.model.resize_token_embeddings(len(self.tokenizer))
-            # self.model_demo.resize_token_embeddings(len(self.tokenizer))
+            self.model.resize_token_embeddings(len(self.tokenizer))
+            self.model_demo.resize_token_embeddings(len(self.tokenizer))
         
         
 
-        self.optim_param = list(self.model.named_parameters())
+        self.optim_param = list(self.model.named_parameters()) + list(self.state_network.named_parameters())
         no_decay = ['bias', 'ln']   # no decay for bias and LayerNorm (ln)
         self.optimizer_grouped_parameters = [
         {'params': [p for n, p in self.optim_param
