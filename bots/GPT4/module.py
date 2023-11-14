@@ -23,7 +23,7 @@ class bot(nn.Module):
                 while flag == True : 
                     try : 
                         reply = openai.ChatCompletion.create(
-                            model="gpt-4",
+                            model="gpt-4-0613",
                             messages=[
                                 {"role": "system", "content" : "Please respond the given sentence without as an language model."}, 
                                 {"role": "user", "content": prefix_sentences[i]}
