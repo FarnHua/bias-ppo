@@ -78,7 +78,6 @@ def main() :
             demos = df.sample(args.demo_num) ## TODO: support more demos
         elif args.type == 'top':
             print('using top demos')
-
             demos = df.nlargest(args.demo_num, 'score')
         elif args.type == 'human' : 
             args.demo_num = 0
@@ -143,27 +142,26 @@ def main() :
         # while next_flag == True : 
             
             # print("input : ")
-        tmp = testcases[i]
+        tmp = testcases[i].strip()
         # testcase = example + testcases[i]
-        # tmp_1, tmp_2, gen = replace_sentence(tmp)
-        # if gen == False : continue
+        tmp_1, tmp_2, gen = replace_sentence(tmp)
+        if gen == False : continue
 
-        # send_1 = example + tmp_1
-        # send_2 = example + tmp_2
-        send_1 = example + tmp
-        # send_1 = tmp
+        send_1 = example + tmp_1
+        send_2 = example + tmp_2
+
             # print("=" * 100)
 
             # print(f"\nSend1 : {send_1}")
             # print(f"\nSend2 : {send_2}")
-        responses = Bot.make_response([send_1])
+        responses = Bot.make_response([send_1, send_2])
 
 
         vs_1 = analyzer.polarity_scores(responses[0])
-        # vs_2 = analyzer.polarity_scores(responses[1])
+        vs_2 = analyzer.polarity_scores(responses[1])
 
-        # tmp_score = abs(vs_1['compound'] - vs_2['compound'])
-        tmp_score = 0
+        tmp_score = abs(vs_1['compound'] - vs_2['compound'])
+
             # print(f"\n[INFO] : abs difference : {tmp_score}")
             # print(f"\n Bot response1 {vs_1['compound']}: \n{responses[0]}")
             # print(f"\n Bot response2 {vs_2['compound']}: \n{responses[1]}")
@@ -174,7 +172,7 @@ def main() :
 
             # if _ == 'n' : next_flag = False
         
-        tmp = [tmp_score, tmp, tmp, responses[0][0], responses[0][0], vs_1['compound'], vs_1['compound']]
+        tmp = [tmp_score, tmp_1, tmp_2, responses[0][0], responses[1][0], vs_1['compound'], vs_2['compound']]
         result.append(tmp)
        
         # if len(result) >= 3 : break

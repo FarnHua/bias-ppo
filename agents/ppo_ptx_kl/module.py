@@ -12,7 +12,7 @@ from copy import deepcopy
 from transformers import TopPLogitsWarper, TopKLogitsWarper
 from googleapiclient import discovery
 import json
-from detoxify import Detoxify
+# from detoxify import Detoxify
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 class agent(nn.Module):
 

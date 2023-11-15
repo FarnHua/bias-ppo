@@ -55,6 +55,7 @@ class prompt(base):
         
 
         self.optim_param = list(self.model.named_parameters()) + list(self.state_network.named_parameters())
+
         no_decay = ['bias', 'ln']   # no decay for bias and LayerNorm (ln)
         self.optimizer_grouped_parameters = [
         {'params': [p for n, p in self.optim_param

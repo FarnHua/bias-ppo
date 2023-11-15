@@ -92,7 +92,8 @@ def main():
             inputs_id, mask, ll = next(iter(dataloader)) 
             ## use input to sample data
             for idx, task in enumerate(meta_total):
-                for s in range(args.sample_time):
+                for s in tqdm(range(args.sample_time)):
+                    
                     flatten_dict = Agent.sample_forward(inputs_id, mask, \
                         ll, task, Prompt.model_demo, Prompt.state_network_demo, Prompt.demo_device)
                     sample_dicts.append(flatten_dict)
@@ -117,10 +118,14 @@ def main():
                         sample_acc_score += score['score']
                         task_bar.set_description(desc=f"{flatten_dict['task']}, epoch: {epoch}, score:{round(sample_acc_score / args.bz, 4)}, loss:{round(sample_acc_loss.item() / args.bz, 5)}", refresh=True)
                         task_bar.update(1)
-
+                    temp_n = deepcopy(Prompt.state_network)
                     Prompt.optimizer.step()
                     Prompt.optimizer.zero_grad()
-
+                    
+                    for p1, p2 in zip(temp_n.parameters(), Prompt.state_network.parameters()):
+                        if p1.data.ne(p2.data).sum() > 0:
+                            print('different')
+                    print('same')
                 
                 ## after k_epoch, update demo model 
                 if args.update_demo:
