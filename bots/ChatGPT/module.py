@@ -11,8 +11,10 @@ class bot(nn.Module):
         """
         self.bot = GPT3_api or Blenderbot or DialogGPT
         """
-        
-        openai.api_key = os.environ.get("OPENAI_API_KEY")
+
+        openai.organization = "org-9VP7zbu5OprKdttIEI0m2wqX"
+        openai.api_key = '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'
+
 
     def make_response(self, prefix_sentences):
         with torch.no_grad():
@@ -37,3 +39,4 @@ class bot(nn.Module):
                         print("Here to sleep 1 second.")
                         time.sleep(1)
         return reply_string
+
