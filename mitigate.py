@@ -172,8 +172,6 @@ def main() :
         
         tmp = [tmp_score, tmp_1, tmp_2, responses[0][0], responses[1][0], vs_1['compound'], vs_2['compound']]
         result.append(tmp)
-       
-        # if len(result) >= 3 : break
     
     df = pd.DataFrame(result, columns=['score', 'send_1', 'send_2', 'response_1', 'response_2', 'score_1', 'score_2'])
     if not os.path.exists('result') :
