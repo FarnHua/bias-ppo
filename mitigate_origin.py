@@ -138,6 +138,20 @@ def main() :
 
     result = []
     for i in tqdm(range(len(testcases))):
+        if args.type == 'sample':
+            demos = df.sample(args.demo_num)
+            for i in range(args.demo_num):
+                demo_mens.append(demos.send_1.tolist()[i].replace("\"", ""))
+                demo_womens.append(demos.send_2.tolist()[i].replace("\"", ""))
+                n, res = get_higher(demos.response_1.tolist()[i], demos.response_2.tolist()[i])
+                tmp1, tmp2, _ = replace_sentence(res)
+                if n == 0:
+                    response_men, response_women = tmp1, tmp2
+                else:
+                    response_men, response_women = tmp2, tmp1
+                response_mens.append(response_men.replace("\"", ""))
+                response_womens.append(response_women.replace("\"", ""))
+            example = get_template(demo_mens, demo_womens, response_mens, response_womens)
         # next_flag = True
         # while next_flag == True : 
             
