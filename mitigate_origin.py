@@ -139,6 +139,14 @@ def main() :
     result = []
     for i in tqdm(range(len(testcases))):
         if args.type == 'sample':
+            response_men = ""
+            response_women = ""
+            ### construct examples for mitigate bias
+
+            demo_mens = []
+            demo_womens = []
+            response_mens = []
+            response_womens = []
             demos = df.sample(args.demo_num)
             for i in range(args.demo_num):
                 demo_mens.append(demos.send_1.tolist()[i].replace("\"", ""))
