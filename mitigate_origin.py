@@ -148,10 +148,10 @@ def main() :
             response_mens = []
             response_womens = []
             demos = df.sample(args.demo_num)
-            for i in range(args.demo_num):
-                demo_mens.append(demos.send_1.tolist()[i].replace("\"", ""))
-                demo_womens.append(demos.send_2.tolist()[i].replace("\"", ""))
-                n, res = get_higher(demos.response_1.tolist()[i], demos.response_2.tolist()[i])
+            for idx in range(args.demo_num):
+                demo_mens.append(demos.send_1.tolist()[idx].replace("\"", ""))
+                demo_womens.append(demos.send_2.tolist()[idx].replace("\"", ""))
+                n, res = get_higher(demos.response_1.tolist()[idx], demos.response_2.tolist()[idx])
                 tmp1, tmp2, _ = replace_sentence(res)
                 if n == 0:
                     response_men, response_women = tmp1, tmp2
@@ -164,7 +164,9 @@ def main() :
         # while next_flag == True : 
             
             # print("input : ")
+        
         tmp = testcases[i].strip()
+        print(tmp)
         # testcase = example + testcases[i]
         tmp_1, tmp_2, gen = replace_sentence(tmp)
         if gen == False : continue
