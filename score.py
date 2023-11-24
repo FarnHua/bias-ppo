@@ -41,17 +41,11 @@ def main():
             # print(len(sens), '\n\n')
             if args.bot == 'blenderbot' :
                 if len(sens) >= 128 : sens = sens[:128]
-            # import pdb
-            # pdb.set_trace()
             res = Bot.make_response([sens])
             
             result.append(res[0][0])
-            # if len(result) >= 10 : break 
         df = pd.DataFrame(result, columns=['sentence'])
         df.to_csv(args.save_path)
-
-    # print(df)
-    # sentences = df['0'][1:].tolist()
     else : 
         result = []
         scores = []
@@ -62,21 +56,15 @@ def main():
             if args.bot == 'blenderbot' :
                 if len(sens) >= 128 : sens = sens[:128]
             score, re_sen, re_res = bias_reward([sens], Bot, analyzer)
-            # import pdb
-            # pdb.set_trace()
             if re_res[0][0] == 'none' : continue
-            # import pdb
-            # pdb.set_trace()
             tmp = [score[0], re_sen[0][0], re_sen[0][1], re_res[0][0], re_res[0][1]]
             scores.append(score[0])
             result.append(tmp)
-            # if len(result) >= 10 : break
+
         
         score = np.array(score)
         print(f"Average score is {np.mean(scores)}.")
         df = pd.DataFrame(result, columns=['score', 'send_1', 'send_2', 'response_1', 'response_2'])
-        # if not os.path.exists('result') :
-        #     os.mkdir('result')
         df.to_csv(args.save_path)
         
             

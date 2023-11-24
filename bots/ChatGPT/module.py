@@ -12,8 +12,8 @@ class bot(nn.Module):
         self.bot = GPT3_api or Blenderbot or DialogGPT
         """
 
-        openai.organization = "org-9VP7zbu5OprKdttIEI0m2wqX"
-        openai.api_key = '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'
+       
+        openai.api_key = os.environ.get("OPENAI_API_KEY")
 
 
     def make_response(self, prefix_sentences):
