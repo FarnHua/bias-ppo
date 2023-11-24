@@ -6,7 +6,8 @@ from argparse import ArgumentParser
 import math
 import nltk
 from nltk.translate.bleu_score import SmoothingFunction
-
+import numpy as np
+import random
 
 torch.manual_seed(42)
 
@@ -41,21 +42,60 @@ def main() :
     model = GPT2LMHeadModel.from_pretrained('gpt2-large').to('cuda')
     
     sentences = []
+    responses = []
+    scores = []
     with open(args.file_path, 'r') as file:
         csvreader = csv.reader(file)
         i = 0
         for row in csvreader:
             if i > 0 :
-                sentences.append(row[1])
+                scores.append(float(row[1]))
+                sentences.append(row[2])
+                responses.append(row[4])
             i += 1
+    print(f"average sentiment gap: {np.mean(scores)}")
     
-    print(sentences[0])
+    
+    # print(sentences[0])
+
+    # distinct_word = []
+    # print("[INFO] : Calculating Prompt PPL ...")
+    # nan_count, ppl_loss = 0, 0
+    # with torch.no_grad() :
+    #     for sent in tqdm(sentences) :
+    #         inputs = torch.LongTensor(tokenizer.encode(sent)).to('cuda')
+    #         output =  model(inputs, labels=inputs, return_dict=True)
+
+    #         if torch.isnan(output.loss):
+    #             nan_count += 1
+    #         else :
+    #             ppl_loss += output.loss
+            
+    #         for x in sent.split() : 
+    #             if x not in distinct_word :
+    #                 distinct_word.append(x)
+        
+
+    # print("[INFO] : calculating Prompt blue")
+    # bleu_1, bleu_2, bleu_3, bleu_4 = calculate_self_bleu(sentences)
+
+    # print("=" * 100)
+    # print(f"\nThe result of prompt in {args.file_path.split('/')[-1]} is : \n")
+
+    # print('PPL:', math.exp(ppl_loss/ (len(sentences) - nan_count)))
+    # print(f"{nan_count} sentence with nan loss.\n")
+    # print('bleu_4: ', bleu_4)
+    # print(f"number of distinct words : {len(distinct_word)}")
+    
+    
+    
+    print(responses[0])
 
     distinct_word = []
-    print("[INFO] : Calculating PPL ...")
+    print("[INFO] : Calculating Response PPL ...")
     nan_count, ppl_loss = 0, 0
     with torch.no_grad() :
-        for sent in tqdm(sentences) :
+        for sent in tqdm(responses) :
             inputs = torch.LongTensor(tokenizer.encode(sent)).to('cuda')
             output =  model(inputs, labels=inputs, return_dict=True)
 
@@ -69,21 +109,22 @@ def main() :
                     distinct_word.append(x)
         
 
-    # print("[INFO] : calculating blue")
-    # bleu_1, bleu_2, bleu_3, bleu_4 = calculate_self_bleu(sentences)
+    print("[INFO] : calculating Resposne blue")
+    bleu_1, bleu_2, bleu_3, bleu_4 = calculate_self_bleu(responses)
 
     print("=" * 100)
     print(f"\nThe result of {args.file_path.split('/')[-1]} is : \n")
 
-    print('PPL:', math.exp(ppl_loss/ (len(sentences) - nan_count)))
+    print('PPL:', math.exp(ppl_loss/ (len(responses) - nan_count)))
     print(f"{nan_count} sentence with nan loss.\n")
     # print("blue result : ")
     # print('bleu_1: ', bleu_1)
     # print('bleu_2: ', bleu_2)
     # print('bleu_3: ', bleu_3)
-    # print('bleu_4: ', bleu_4)
+    print('bleu_4: ', bleu_4)
     print(f"number of distinct words : {len(distinct_word)}")
-
+    
+    print("======================================")
 
 
 
@@ -98,4 +139,9 @@ def set_arguments(parser):
 
 
 if __name__ == "__main__":
+    
+    np.random.seed(42)
+    torch.random.manual_seed(42)
+    torch.cuda.manual_seed(42)
+    random.seed(42)
     main()    
