@@ -10,7 +10,7 @@ class bot(nn.Module):
         self.bot = GPT3_api or Blenderbot or DialogGPT
         """
         self.device = "cuda:1"
-        self.tokenizer = LlamaTokenizer.from_pretrained("meta-llama/Llama-2-7b-chat")
+        self.tokenizer = LlamaTokenizer.from_pretrained("meta-llama/Llama-2-7b-chat-hf")
         self.lm = AutoModelForCausalLM.from_pretrained(
             "meta-llama/Llama-2-7b-chat-hf",
             torch_dtype=torch.bfloat16, 

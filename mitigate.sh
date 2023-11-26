@@ -1,43 +1,46 @@
 #!/bin/sh
-#SBATCH --job-name=chatgpt_mi_top
+#SBATCH --job-name=gpt4-mi-human
 #SBATCH --nodes=1
-#SBATCH --gres=gpu:2
-#SBATCH --account=MST112195
-##SBATCH -o ./log/mitigate_ablation/chatgp_mitigate_top_male
+#SBATCH --gres=gpu:1
+#SBATCH --account=GOV112004
+#SBATCH --partition gpNCHC_LLM
+#SBATCH -o ./log/mitigate_ablation/gpt4-miti-human
 #SBATCH --ntasks-per-node=1
-#SBATCH --array=1-2
+##SBATCH --array=1-5
+#SBATCH --cpus-per-task=4
 
 module purge
 module load miniconda3
-conda activate promptbench
+conda activate bias
 
 
 
-# model=("koala" "koala" "alpaca" "alpaca" "dolly" "dolly")
-# type=("top" "sample" "top" "sample" "top" "sample")
-num=("5" "5" "5" "5") 
+
+# type=("top" "top" "top" "top" "top")
+type=("sample" "sample" "sample" "sample" "sample")
+num=("1" "2" "3" "4" "5")
 # t=("2" "2" "3" "3")
-model=("LLaMA2_system" "LLaMA2") # "LLaMA2_system" "LLaMA2")
-# bold=("female.csv" "female.csv" "male.csv" "male.csv")
+# model=("GPT4" "GPT4" "GPT4" "GPT4" "GPT4")
+model=("ChatGPT" "ChatGPT" "ChatGPT" "ChatGPT" "ChatGPT")
 
-# python3 mitigate.py \
-# --bot ${model[$SLURM_ARRAY_TASK_ID-1]} \
-# --type ${type[$SLURM_ARRAY_TASK_ID-1]} \
-# --demo_num 5 \
-# --testfile /work/u5273929/bias-ppo/gpt2_finetune/pretrain_data/twitter_comment.csv \
-# --save_path mitigate_result/${model[$SLURM_ARRAY_TASK_ID-1]}_mitigate_twitter_${type[$SLURM_ARRAY_TASK_ID-1]}_5.csv \
-# --demofile /work/u5273929/bias-ppo/result/baseline_result/${model[$SLURM_ARRAY_TASK_ID-1]}_response_ChatGPT_before_rl.csv \
-
+export OPENAI_API_KEY=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
 # python3 mitigate_origin.py \
-# --type top \
-# --save_path result/mitigate_result/${model[$SLURM_ARRAY_TASK_ID-1]}_mitigate_top_${num[$SLURM_ARRAY_TASK_ID-1]}_${bold[$SLURM_ARRAY_TASK_ID-1]} \
+# --type ${type[$SLURM_ARRAY_TASK_ID-1]} \
+# --save_path Mitigate_Result/${model[$SLURM_ARRAY_TASK_ID-1]}/${model[$SLURM_ARRAY_TASK_ID-1]}_mitigate_${type[$SLURM_ARRAY_TASK_ID-1]}_${num[$SLURM_ARRAY_TASK_ID-1]}_origin.csv \
 # --bot ${model[$SLURM_ARRAY_TASK_ID-1]} \
 # --demo_num ${num[$SLURM_ARRAY_TASK_ID-1]} \
-# --testfile ./${bold[$SLURM_ARRAY_TASK_ID-1]}
+# --testfile RL_Result/${model[$SLURM_ARRAY_TASK_ID-1]}/${model[$SLURM_ARRAY_TASK_ID-1]}-distinct1000-test.csv \
+# --demofile Score_Result/${model[$SLURM_ARRAY_TASK_ID-1]}/${model[$SLURM_ARRAY_TASK_ID-1]}-incontext.csv
 
-python3 mitigate_origin.py \
---type top \
---save_path result/mitigate_result/${model[$SLURM_ARRAY_TASK_ID-1]}_mitigate_top_${num[$SLURM_ARRAY_TASK_ID-1]}_origin.csv \
---bot ${model[$SLURM_ARRAY_TASK_ID-1]} \
---demo_num ${num[$SLURM_ARRAY_TASK_ID-1]};
-# --testfile ./bold/${bold[$SLURM_ARRAY_TASK_ID-1]}
+Model=GPT4
+Type=human
+for i in 5
+do
+    python3 mitigate_origin.py \
+        --type $Type \
+        --save_path ${Model}_mitigate_${Type}_origin.csv \
+        --bot ${Model} \
+        --demo_num 0 \
+        --testfile RL_Result/${Model}/${Model}-distinct1000-test.csv \
+        --demofile Score_Result/${Model}/${Model}-incontext.csv
+done
