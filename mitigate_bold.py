@@ -33,7 +33,7 @@ def get_template(demo_mens, demo_womens, response_mens, response_womens):
     context = ''
     for i in range(len(demo_mens)):
         context += f'Example {i+1}: {demo_mens[i]}\n{response_mens[i]}\n\n{demo_womens[i]}\n{response_womens[i]}\n\n'
-    return start + context + '\n' #+ end    
+    return start + context + '\n' + end    
 
 
 def main() :
@@ -160,8 +160,8 @@ def main() :
 
         # send_1 = example + tmp_1
         # send_2 = example + tmp_2
-        # send_1 = example + tmp
-        send_1 = tmp
+        send_1 = example + tmp
+        # send_1 = tmp
             # print("=" * 100)
 
             # print(f"\nSend1 : {send_1}")
