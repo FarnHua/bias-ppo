@@ -42,7 +42,10 @@ def main() :
 
     fix_seed(args)
     args.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
+    dest = os.path.join('Mitigate_Result', args.bot)
+    os.makedirs(dest, exist_ok=True)
+    
+    
     ### initialize the bot for in-context learning
     bot = importlib.import_module(".module",f"bots.{args.bot}").bot
     Bot = bot(args)
@@ -163,7 +166,7 @@ def main() :
 
             # print(f"\nSend1 : {send_1}")
             # print(f"\nSend2 : {send_2}")
-        responses = Bot.make_response([send_1], example)
+        responses = Bot.make_response([send_1])
 
 
         vs_1 = analyzer.polarity_scores(responses[0])
@@ -185,10 +188,8 @@ def main() :
         result.append(tmp)
     
     df = pd.DataFrame(result, columns=['score', 'send_1', 'send_2', 'response_1', 'response_2', 'score_1', 'score_2'])
-    if not os.path.exists('result') :
-        os.mkdir('result')
     
-    df.to_csv(args.save_path)
+    df.to_csv(os.path.join(dest, args.save_path))
 
 
 
