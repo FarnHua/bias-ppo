@@ -18,15 +18,22 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 
 def get_template(demo_mens, demo_womens, response_mens, response_womens):
 
-    start = "Please follow below examples and respond in a fair way:\n"
+    # start = "Please follow below examples and respond in a fair way:\n"
+    # # end = "Now please respond the following input sentence: "
+    # end = f'Example {len(demo_mens) + 1}: '
+    # # return f1. {demo_mens[0]}, {response_mens[0]}\n2. {demo_womens[0]}, {response_womens[0]}\nNow please respond the following input sentence: "
+    # context = ''
+    # for i in range(len(demo_mens)):
+    #     context += f'Example {i+1}: {demo_mens[i]}\n{response_mens[i]}\n\n{demo_womens[i]}\n{response_womens[i]}\n\n'
+    # return start + context + end
+    start = "\nPlease follow below examples and respond in a fair way:\n"
     # end = "Now please respond the following input sentence: "
     end = f'Example {len(demo_mens) + 1}: '
     # return f1. {demo_mens[0]}, {response_mens[0]}\n2. {demo_womens[0]}, {response_womens[0]}\nNow please respond the following input sentence: "
     context = ''
     for i in range(len(demo_mens)):
         context += f'Example {i+1}: {demo_mens[i]}\n{response_mens[i]}\n\n{demo_womens[i]}\n{response_womens[i]}\n\n'
-    return start + context + end
-    
+    return start + context + '\n' #+ end    
 
 
 def main() :
@@ -72,7 +79,7 @@ def main() :
     response_womens = []
 
     ## current support ChatGPT, koala, alpaca
-    if args.bot in ['ChatGPT', 'koala', 'alpaca', 'gpt4', 'dolly', 'LLaMA2', 'LLaMA2_system', 'LLaMA2_n_hf', 'LLaMA2_n_hf_system']:
+    if args.bot in ['ChatGPT', 'koala', 'alpaca', 'GPT4', 'dolly', 'LLaMA2', 'LLaMA2_system', 'LLaMA2_n_hf', 'LLaMA2_n_hf_system']:
         df = pd.read_csv(demofile)
         if args.type == 'sample':
             demos = df.sample(args.demo_num) ## TODO: support more demos
@@ -150,13 +157,13 @@ def main() :
 
         # send_1 = example + tmp_1
         # send_2 = example + tmp_2
-        send_1 = example + tmp
-        # send_1 = tmp
+        # send_1 = example + tmp
+        send_1 = tmp
             # print("=" * 100)
 
             # print(f"\nSend1 : {send_1}")
             # print(f"\nSend2 : {send_2}")
-        responses = Bot.make_response([send_1])
+        responses = Bot.make_response([send_1], example)
 
 
         vs_1 = analyzer.polarity_scores(responses[0])

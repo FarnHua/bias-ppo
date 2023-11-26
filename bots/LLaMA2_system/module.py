@@ -24,17 +24,17 @@ class bot(nn.Module):
             max_new_tokens=128,
         )
     def generate_prompt(self, system_prompt: str, user_message: str = None) -> str:
-        text = f'''[INST] <<SYS>>
+        text = f'''[INST] <<SYS>>{system_prompt}
 You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe.  Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature.
 
-If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information.{system_prompt}
+If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information.
 <</SYS>>
 
 {user_message} [/INST]'''
 
         return text
 
-    def make_response(self,prefix_sentences, system_prompt=''):
+    def make_response(self, prefix_sentences, system_prompt=''):
         
         with torch.no_grad():
             # sentences = []

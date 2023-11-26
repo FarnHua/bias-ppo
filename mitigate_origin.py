@@ -135,7 +135,7 @@ def main() :
             # print("input : ")
         
         tmp = testcases[i].strip()
-        print(tmp)
+        # print(tmp)
         # testcase = example + testcases[i]
         tmp_1, tmp_2, gen = replace_sentence(tmp)
         if gen == False : continue
