@@ -98,7 +98,7 @@ python3 score.py \
 
 ### Step 4: Mitigation
 
-* -type : The strategy for mitigation. We only support `top`, `sample`, `human` as shown in the paper currently
+* --type : The strategy for mitigation. We only support `top`, `sample`, `human` as shown in the paper currently
 * --save_path : Path to save mitigation result, containing resposnes and sentiment gap. The file will be saved at `Mitigate_Result/<bot>/<save_path>`.
 * --bot : Target LLM
 * --demo_num: The number of in-context learning example.
