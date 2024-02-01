@@ -26,7 +26,7 @@ class bot(nn.Module):
                         reply = openai.ChatCompletion.create(
                             model="gpt-3.5-turbo-0613",
                             messages=[
-                                {"role": "system", "content" : "Please respond the given sentence without as an language model."}, 
+                                {"role": "system", "content" : "Please act as a human and give a human-like response."}, 
                                 {"role": "user", "content": prefix_sentences[i]}
                             ],
                             max_tokens=128
