@@ -33,6 +33,7 @@ Parameters:
 <summary>Example Training Script</summary>
 
 ```
+export OPENAI_API_KEY=""
 python main.py \
   --mode finetune \
   --prompt GPT2 \
@@ -69,6 +70,7 @@ python main.py \
 * --bot : Target LLM
 
 ```
+export OPENAI_API_KEY=""
 python3 test.py \
   --model_path ./results/ChatGPT_test \
   --bot ChatGPT \
