@@ -21,6 +21,10 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 def main():
     
     # replace yaml default argument to argparser arg. 
+    dest = os.path.join('Score_Result', args.bot)
+    os.makedirs(dest, exist_ok=True)
+    
+    
     parser = ArgumentParser()
     args  = set_arguments(parser)
 
@@ -65,7 +69,7 @@ def main():
         score = np.array(score)
         print(f"Average score is {np.mean(scores)}.")
         df = pd.DataFrame(result, columns=['score', 'send_1', 'send_2', 'response_1', 'response_2'])
-        df.to_csv(args.save_path)
+        df.to_csv(os.path.join(dest, args.save_path))
         
             
 
